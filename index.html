@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Parede</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      grid-template-rows: auto 1fr;
+      gap: 16px;
+      padding: 20px;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 18px;
+      border: 1px solid #334155;
+    }
+    /* Relógio */
+    #clock-box { grid-column: 1 / 3; display: flex; justify-content: space-between; align-items: baseline; }
+    #time { font-size: 3.8rem; font-weight: 700; color: #38bdf8; font-variant-numeric: tabular-nums; }
+    #date { font-size: 1.4rem; color: #94a3b8; }
+
+    /* Clima */
+    .weather-header { font-size: 1.2rem; font-weight: 600; margin-bottom: 12px; }
+    .hourly-container { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
+    .hourly-item { text-align: center; background: #0f172a; padding: 8px 12px; border-radius: 8px; min-width: 60px; }
+    .daily-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #334155; font-size: 0.95rem; }
+
+    /* Bloco de Notas */
+    #notes-box { display: flex; flex-direction: column; }
+    #notes {
+      width: 100%;
+      flex-grow: 1;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #e2e8f0;
+      padding: 12px;
+      font-size: 1rem;
+      resize: none;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Topo: Relógio e Data -->
+  <div class="card" id="clock-box">
+    <div id="time">00:00:00</div>
+    <div id="date">Carregando data...</div>
+  </div>
+
+  <!-- Esquerda: Previsão do Tempo (Evolução horária + Próximos dias) -->
+  <div class="card" id="weather-box">
+    <div class="weather-header">Previsão do Tempo</div>
+    <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Próximas 12 Horas</div>
+    <div class="hourly-container" id="hourly-list">Carregando...</div>
+    
+    <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px;">Próximos Dias</div>
+    <div id="daily-list"></div>
+  </div>
+
+  <!-- Direita: Bloco de Notas Auto-Salvo -->
+  <div class="card" id="notes-box">
+    <div class="weather-header">Bloco de Notas / Recados</div>
+    <textarea id="notes" placeholder="Digite recados ou lembretes aqui..."></textarea>
+  </div>
+
+  <script>
+    // 1. Relógio e Data
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('time').textContent = now.toLocaleTimeString('pt-BR');
+      document.getElementById('date').textContent = now.toLocaleDateString('pt-BR', { 
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+      });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 2. Previsão do Tempo via Open-Meteo (Substitua lat/lon pela sua cidade)
+    const LAT = -23.55; // Exemplo: São Paulo
+    const LON = -46.63;
+
+    async function fetchWeather() {
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_2m&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=6`);
+        const data = await res.json();
+
+        // Próximas 12 horas
+        const currentHour = new Date().getHours();
+        let hourlyHtml = '';
+        for (let i = currentHour; i < currentHour + 12; i++) {
+          const hourLabel = `${i % 24}:00`;
+          const temp = Math.round(data.hourly.temperature_2m[i]);
+          hourlyHtml += `
+            <div class="hourly-item">
+              <div style="font-size: 0.75rem; color: #94a3b8;">${hourLabel}</div>
+              <div style="font-weight: bold; margin-top: 4px;">${temp}°C</div>
+            </div>`;
+        }
+        document.getElementById('hourly-list').innerHTML = hourlyHtml;
+
+        // Próximos 5 dias
+        let dailyHtml = '';
+        for (let j = 1; j < 5; j++) {
+          const dayDate = new Date(data.daily.time[j]).toLocaleDateString('pt-BR', { weekday: 'short' });
+          const min = Math.round(data.daily.temperature_2m_min[j]);
+          const max = Math.round(data.daily.temperature_2m_max[j]);
+          dailyHtml += `
+            <div class="daily-item">
+              <span>${dayDate.toUpperCase()}</span>
+              <span><strong>${max}°C</strong> <span style="color: #64748b;">${min}°C</span></span>
+            </div>`;
+        }
+        document.getElementById('daily-list').innerHTML = dailyHtml;
+      } catch (err) {
+        document.getElementById('hourly-list').textContent = 'Erro ao carregar clima.';
+      }
+    }
+    fetchWeather();
+    setInterval(fetchWeather, 1800000); // Atualiza a cada 30 min
+
+    // 3. Bloco de Notas com LocalStorage
+    const notesArea = document.getElementById('notes');
+    notesArea.value = localStorage.getItem('wall_notes') || '';
+    notesArea.addEventListener('input', () => {
+      localStorage.setItem('wall_notes', notesArea.value);
+    });
+  </script>
+</body>
+</html>
