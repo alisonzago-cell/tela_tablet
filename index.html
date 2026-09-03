@@ -18,14 +18,25 @@
     <div class="bg-overlay"></div>
 
     <main class="dashboard-container">
-        
-        <!-- Bloco do Relógio -->
+        <!-- Linha 1, Col 1: Bloco do Relógio -->
         <section class="panel clock-panel glass">
             <h1 id="time" class="time-display">00:00</h1>
             <h2 id="date" class="date-display">Carregando data...</h2>
         </section>
 
-        <!-- Bloco do Clima -->
+        <!-- Linha 1, Col 2: Bloco de Notícias -->
+        <section class="panel news-panel glass">
+            <div class="panel-header">
+                <h3><i class="ph ph-newspaper"></i> Últimas Notícias</h3>
+            </div>
+            <div class="news-list-container" id="news-list-container">
+                <div class="news-list" id="news-list">
+                    <div style="text-align: center; color: var(--text-secondary);">Carregando notícias...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Linha 2, Col 1: Bloco do Clima -->
         <section class="panel weather-panel glass">
             <div class="weather-header">
                 <h3><i class="ph ph-map-pin"></i> Bom Retiro, São Paulo</h3>
@@ -51,17 +62,23 @@
             </div>
         </section>
 
-        <!-- Bloco de Notas -->
-        <section class="panel notes-panel glass">
+        <!-- Linha 2, Col 2: Bloco do Calendário -->
+        <section class="panel calendar-panel glass">
             <div class="panel-header">
-                <h3><i class="ph ph-notepad"></i> Bloco de Notas</h3>
+                <h3 id="calendar-month-year"><i class="ph ph-calendar"></i> Calendário</h3>
             </div>
-            <textarea id="notepad" placeholder="Escreva suas anotações aqui... Elas são salvas automaticamente!"></textarea>
-        </section>
-
-        <!-- Bloco de Calendário Removido -->
-
-    </main>
+            <div class="calendar-grid-wrapper">
+                <div class="calendar-weekdays">
+                    <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                </div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- Dias injetados via JS -->
+                </div>
+            </div>
+            <div class="calendar-legend" id="calendar-legend">
+                <!-- Legenda dos feriados do mês -->
+            </div>
+        </section>    </main>
 
     <script src="script.js"></script>
 </body>

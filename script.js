@@ -19,7 +19,6 @@ const bg1 = document.getElementById('bg1');
 const bg2 = document.getElementById('bg2');
 const timeEl = document.getElementById('time');
 const dateEl = document.getElementById('date');
-const notepadEl = document.getElementById('notepad');
 
 // ======== RELÓGIO & DATA ========
 function updateClock() {
@@ -60,14 +59,6 @@ function changeBackground() {
     isBg1Active = !isBg1Active;
 }
 setInterval(changeBackground, CHANGE_BG_INTERVAL);
-
-// ======== BLOCO DE NOTAS ========
-const savedNote = localStorage.getItem('tablet_notes');
-if (savedNote) notepadEl.value = savedNote;
-
-notepadEl.addEventListener('input', (e) => {
-    localStorage.setItem('tablet_notes', e.target.value);
-});
 
 // Calendário Removido Temporariamente 
 
@@ -122,7 +113,7 @@ async function fetchWeather() {
                     <span class="hourly-time">${h}</span>
                     <span class="hourly-temp">${temp}°</span>
                     <span style="font-size: 0.8rem; color: var(--text-secondary);"><i class="ph ph-drop"></i> ${rainProb}%</span>
-                    <span style="font-size: 0.8rem; color: var(--text-secondary);"><i class="ph ph-wind"></i> ${windSpeed} km/h</span>
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);"><i class="ph ph-wind"></i> ${windSpeed} <span style="font-size: 0.5rem;">km/h</span></span>
                 </div>
             `;
         }
@@ -171,3 +162,164 @@ async function fetchWeather() {
 }
 fetchWeather();
 setInterval(fetchWeather, UPDATE_WEATHER_INTERVAL);
+
+// ======== NOTÍCIAS ========
+const newsList = document.getElementById('news-list');
+const RSS_FEEDS = [
+    { url: 'https://g1.globo.com/rss/g1/sao-paulo/', tag: 'SP', class: 'tag-sp', source: 'G1 SP' },
+    { url: 'https://ge.globo.com/rss/', tag: 'Esportes', class: 'tag-esportes', source: 'GE' },
+    { url: 'https://g1.globo.com/rss/g1/mundo/', tag: 'Mundo', class: 'tag-mundo', source: 'G1 Mundo' }
+];
+
+// Função para embaralhar array
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+async function fetchAllNews() {
+    newsList.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">Carregando notícias...</div>';
+    try {
+        let allItems = [];
+        
+        for (const feed of RSS_FEEDS) {
+            const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.status === 'ok') {
+                const items = data.items.slice(0, 10); // 10 de cada
+                items.forEach(item => {
+                    allItems.push({
+                        ...item,
+                        tag: feed.tag,
+                        tagClass: feed.class,
+                        source: feed.source
+                    });
+                });
+            }
+        }
+        
+        shuffleArray(allItems);
+        newsList.innerHTML = '';
+        
+        allItems.forEach(item => {
+            let dateStr = '';
+            try {
+                const d = new Date(item.pubDate);
+                dateStr = d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
+            } catch(e) {}
+            
+            const el = document.createElement('div');
+            el.className = 'news-item';
+            el.innerHTML = `
+                <div class="news-header">
+                    <span class="news-tag ${item.tagClass}">${item.tag}</span>
+                    <span class="news-source">Fonte: ${item.source} • ${dateStr}</span>
+                </div>
+                <div class="news-title">${item.title}</div>
+            `;
+            newsList.appendChild(el);
+        });
+
+    } catch (error) {
+        console.error("Erro ao buscar notícias: ", error);
+        newsList.innerHTML = '<div style="text-align: center; color: red;">Erro ao carregar notícias.</div>';
+    }
+}
+
+fetchAllNews();
+setInterval(fetchAllNews, 30 * 60 * 1000);
+
+// Auto-scroll das notícias
+let scrollPos = 0;
+function autoScrollNews() {
+    const container = document.getElementById('news-list-container');
+    if (newsList.scrollHeight > container.clientHeight) {
+        scrollPos += 0.2; // velocidade do scroll reduzida pela metade
+        if (scrollPos >= newsList.scrollHeight - container.clientHeight) {
+            scrollPos = 0; // volta pro topo
+        }
+        newsList.style.transform = `translateY(-${scrollPos}px)`;
+    }
+    requestAnimationFrame(autoScrollNews);
+}
+autoScrollNews();
+
+// ======== CALENDÁRIO MENSAL ========
+const calendarGrid = document.getElementById('calendar-grid');
+const calendarMonthYear = document.getElementById('calendar-month-year');
+const calendarLegend = document.getElementById('calendar-legend');
+
+async function renderCalendar() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    
+    const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+    calendarMonthYear.innerHTML = `<i class="ph ph-calendar"></i> ${monthNames[month]} ${year}`;
+    
+    // Buscar feriados
+    let holidays = [];
+    try {
+        const url = `https://brasilapi.com.br/api/feriados/v1/${year}`;
+        const response = await fetch(url);
+        holidays = await response.json();
+    } catch(e) {
+        console.error(e);
+    }
+    
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    
+    calendarGrid.innerHTML = '';
+    if (calendarLegend) calendarLegend.innerHTML = '';
+    
+    // Preencher dias vazios antes do dia 1
+    for (let i = 0; i < firstDayIndex; i++) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'calendar-day empty';
+        calendarGrid.appendChild(emptyDiv);
+    }
+    
+    // Preencher os dias do mês
+    for (let i = 1; i <= lastDay; i++) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day';
+        dayDiv.textContent = i;
+        
+        // Verifica se é final de semana (0 = domingo, 6 = sábado)
+        const dayOfWeek = new Date(year, month, i).getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            dayDiv.classList.add('weekend');
+        }
+        
+        // Verifica se é hoje
+        if (year === now.getFullYear() && month === now.getMonth() && i === now.getDate()) {
+            dayDiv.classList.add('today');
+        }
+        
+        // Verifica se é feriado
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        const holiday = holidays.find(h => h.date === dateStr);
+        
+        if (holiday) {
+            dayDiv.classList.add('holiday');
+            dayDiv.title = holiday.name;
+            
+            // Adiciona na legenda se o feriado for neste mês
+            if (calendarLegend) {
+                const legendItem = document.createElement('div');
+                legendItem.innerHTML = `<strong>${String(i).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}</strong> - ${holiday.name}`;
+                calendarLegend.appendChild(legendItem);
+            }
+        }
+        
+        calendarGrid.appendChild(dayDiv);
+    }
+}
+
+renderCalendar();
+setInterval(renderCalendar, 24 * 60 * 60 * 1000); // Atualiza diariamente

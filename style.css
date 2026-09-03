@@ -14,9 +14,10 @@
 body {
     font-family: 'Outfit', sans-serif;
     color: var(--text-primary);
-    overflow: hidden;
     width: 100vw;
-    height: 100vh;
+    min-height: 101vh;
+    /* Força um leve scroll vertical para esconder o menu do navegador */
+    overflow-x: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -50,12 +51,19 @@ body {
 /* Grid Layout */
 .dashboard-container {
     width: 95%;
-    height: 90%;
+    aspect-ratio: 1024 / 600;
+    height: auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto 1fr;
     gap: 20px;
     padding: 10px;
+}
+
+.news-panel,
+.calendar-panel {
+    overflow: hidden;
+    min-height: 0;
 }
 
 /* Glassmorphism Panel */
@@ -71,16 +79,27 @@ body {
     flex-direction: column;
 }
 
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
 .panel-header h3,
 .weather-header h3 {
     font-size: 1.2rem;
     font-weight: 600;
     color: var(--text-secondary);
-    margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 5px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 0;
+}
+
+.weather-header h3 {
+    margin-bottom: 10px;
 }
 
 /* Clock Panel */
@@ -111,7 +130,7 @@ body {
 
 /* Weather Panel */
 .weather-panel {
-    grid-column: 1 / 2;
+    flex-grow: 1;
 }
 
 .weather-current {
@@ -216,26 +235,138 @@ body {
     color: var(--text-secondary);
 }
 
-/* Notepad Panel */
-.notes-panel {
-    /* Mantém auto grid placement */
-}
-
-#notepad {
+/* News List Styles */
+.news-list-container {
     flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+    /* JS vai controlar o scroll de forma suave */
+}
+
+.news-list {
+    position: absolute;
+    width: 100%;
+    /* translateY manipulado via JS para scroll infinito perfeito */
+}
+
+.news-item {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.news-tag {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.tag-brasil {
+    background: #1e3a8a;
+    color: white;
+}
+
+.tag-sp {
+    background: #4c1d95;
+    color: white;
+}
+
+.tag-esportes {
+    background: #14532d;
+    color: white;
+}
+
+.tag-mundo {
+    background: #7c2d12;
+    color: white;
+}
+
+.news-source {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.news-title {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+/* Calendar Grid Styles */
+.calendar-grid-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px;
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    flex-grow: 1;
+}
+
+.calendar-day {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+
+.calendar-day.empty {
     background: transparent;
-    border: none;
-    color: var(--text-primary);
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.2rem;
-    resize: none;
-    outline: none;
-    line-height: 1.5;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-#notepad::placeholder {
-    color: rgba(226, 232, 240, 0.5);
+.calendar-day.weekend {
+    background: rgba(0, 0, 0, 0.4);
 }
 
-/* Removed Calendar CSS */
+.calendar-day.today {
+    border: 2px solid var(--text-primary);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.calendar-day.holiday {
+    background: rgba(220, 38, 38, 0.4);
+    font-weight: 700;
+    color: #fff;
+    border: 1px solid rgba(220, 38, 38, 0.8);
+}
+
+.calendar-legend {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 40px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
