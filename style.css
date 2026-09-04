@@ -1,5 +1,6 @@
 :root {
-    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-bg: rgba(0, 0, 0, 0.4);
+    /* Fundo mais escuro/opaco para compensar falta de blur */
     --glass-border: rgba(255, 255, 255, 0.1);
     --text-primary: #ffffff;
     --text-secondary: #e2e8f0;
@@ -50,9 +51,8 @@ body {
 
 /* Grid Layout */
 .dashboard-container {
-    width: 95%;
-    aspect-ratio: 1024 / 600;
-    height: auto;
+    width: 95vw;
+    height: 95vh;
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto 1fr;
@@ -93,9 +93,13 @@ body {
     color: var(--text-secondary);
     display: flex;
     align-items: center;
-    gap: 5px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     margin-bottom: 0;
+}
+
+.panel-header h3 i,
+.weather-header h3 i {
+    margin-right: 5px;
 }
 
 .weather-header h3 {
@@ -135,36 +139,83 @@ body {
 
 .weather-current {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
     margin-bottom: 20px;
 }
 
 .temp-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 7rem;
     /* Aumentado */
     font-weight: 600;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px 20px;
+    border-radius: 12px;
+}
+
+.temp-minmax {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-left: 15px;
+    margin-right: auto;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px 20px;
+    border-radius: 12px;
+}
+
+.temp-minmax .max {
+    color: #ef4444;
+    /* Vermelho claro */
+    margin-bottom: 5px;
+}
+
+.temp-minmax .min {
+    color: #60a5fa;
+    /* Azul claro */
+}
+
+.temp-minmax i {
+    margin-right: 5px;
 }
 
 .weather-details {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px 20px;
+    border-radius: 12px;
+}
+
+.weather-details .detail {
+    margin-bottom: 8px;
+}
+
+.weather-details .detail:last-child {
+    margin-bottom: 0;
 }
 
 .detail {
     display: flex;
     align-items: center;
-    gap: 8px;
     font-size: 1.1rem;
     color: var(--text-secondary);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
+.detail i {
+    margin-right: 8px;
+}
+
 .weather-hourly {
     display: flex;
-    gap: 15px;
     overflow-x: auto;
     padding-bottom: 10px;
     scrollbar-width: thin;
@@ -179,6 +230,11 @@ body {
     padding: 10px 15px;
     border-radius: 12px;
     min-width: 80px;
+    margin-right: 15px;
+}
+
+.hourly-item:last-child {
+    margin-right: 0;
 }
 
 .hourly-time {
@@ -196,7 +252,6 @@ body {
 .weather-daily {
     display: flex;
     flex-direction: column;
-    gap: 12px;
 }
 
 .daily-item {
@@ -207,6 +262,11 @@ body {
     padding: 12px 20px;
     border-radius: 12px;
     font-size: 1.2rem;
+    margin-bottom: 12px;
+}
+
+.daily-item:last-child {
+    margin-bottom: 0;
 }
 
 .daily-day {
@@ -219,16 +279,19 @@ body {
     color: var(--text-secondary);
     display: flex;
     align-items: center;
-    gap: 6px;
+}
+
+.daily-rain i {
+    margin-right: 6px;
 }
 
 .daily-temps {
     display: flex;
-    gap: 15px;
 }
 
 .temp-max {
     font-weight: 600;
+    margin-right: 15px;
 }
 
 .temp-min {
@@ -255,7 +318,6 @@ body {
     border-radius: 12px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
     margin-bottom: 12px;
 }
 
@@ -263,6 +325,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 6px;
 }
 
 .news-tag {
@@ -273,23 +336,24 @@ body {
     text-transform: uppercase;
 }
 
-.tag-brasil {
-    background: #1e3a8a;
+.tag-icl {
+    background: #dc2626;
     color: white;
 }
 
-.tag-sp {
-    background: #4c1d95;
+.tag-folha {
+    background: #0f172a;
+    color: white;
+    border: 1px solid #475569;
+}
+
+.tag-bbc {
+    background: #b91c1c;
     color: white;
 }
 
 .tag-esportes {
     background: #14532d;
-    color: white;
-}
-
-.tag-mundo {
-    background: #7c2d12;
     color: white;
 }
 
@@ -365,8 +429,15 @@ body {
     color: var(--text-secondary);
     display: flex;
     flex-direction: column;
-    gap: 4px;
     max-height: 40px;
     overflow-y: auto;
     scrollbar-width: thin;
+}
+
+.calendar-legend div {
+    margin-bottom: 4px;
+}
+
+.calendar-legend div:last-child {
+    margin-bottom: 0;
 }

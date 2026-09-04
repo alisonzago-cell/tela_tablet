@@ -72,6 +72,10 @@ async function fetchWeather() {
 
         // Dados atuais
         document.getElementById('current-temp').textContent = `${Math.round(data.current.temperature_2m)}°`;
+        if (data.daily) {
+            document.getElementById('current-max').textContent = `${Math.round(data.daily.temperature_2m_max[0])}°`;
+            document.getElementById('current-min').textContent = `${Math.round(data.daily.temperature_2m_min[0])}°`;
+        }
         document.getElementById('current-humidity').textContent = `${data.current.relative_humidity_2m}%`;
         document.getElementById('current-wind').textContent = `${Math.round(data.current.wind_speed_10m)}`;
         // Chance de chuva atual (vamos pegar da primeira hora próxima no forecast horário)
@@ -166,9 +170,10 @@ setInterval(fetchWeather, UPDATE_WEATHER_INTERVAL);
 // ======== NOTÍCIAS ========
 const newsList = document.getElementById('news-list');
 const RSS_FEEDS = [
-    { url: 'https://g1.globo.com/rss/g1/sao-paulo/', tag: 'SP', class: 'tag-sp', source: 'G1 SP' },
-    { url: 'https://ge.globo.com/rss/', tag: 'Esportes', class: 'tag-esportes', source: 'GE' },
-    { url: 'https://g1.globo.com/rss/g1/mundo/', tag: 'Mundo', class: 'tag-mundo', source: 'G1 Mundo' }
+    { url: 'https://iclnoticias.com.br/feed/', tag: 'ICL', class: 'tag-icl', source: 'ICL Notícias' },
+    { url: 'https://www.gazetaesportiva.com/feed/', tag: 'Esportes', class: 'tag-esportes', source: 'Gazeta Esportiva' },
+    { url: 'https://feeds.folha.uol.com.br/emcimadahora/rss091.xml', tag: 'Folha', class: 'tag-folha', source: 'Folha de S.Paulo' },
+    { url: 'https://feeds.bbci.co.uk/portuguese/rss.xml', tag: 'BBC', class: 'tag-bbc', source: 'BBC Brasil' }
 ];
 
 // Função para embaralhar array
@@ -192,12 +197,11 @@ async function fetchAllNews() {
             if (data.status === 'ok') {
                 const items = data.items.slice(0, 10); // 10 de cada
                 items.forEach(item => {
-                    allItems.push({
-                        ...item,
+                    allItems.push(Object.assign({}, item, {
                         tag: feed.tag,
                         tagClass: feed.class,
                         source: feed.source
-                    });
+                    }));
                 });
             }
         }
@@ -207,17 +211,21 @@ async function fetchAllNews() {
         
         allItems.forEach(item => {
             let dateStr = '';
-            try {
-                const d = new Date(item.pubDate);
-                dateStr = d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
-            } catch(e) {}
+            if (item.pubDate) {
+                try {
+                    const d = new Date(item.pubDate);
+                    if (!isNaN(d.getTime())) {
+                        dateStr = ' • ' + d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
+                    }
+                } catch(e) {}
+            }
             
             const el = document.createElement('div');
             el.className = 'news-item';
             el.innerHTML = `
                 <div class="news-header">
                     <span class="news-tag ${item.tagClass}">${item.tag}</span>
-                    <span class="news-source">Fonte: ${item.source} • ${dateStr}</span>
+                    <span class="news-source">Fonte: ${item.source}${dateStr}</span>
                 </div>
                 <div class="news-title">${item.title}</div>
             `;

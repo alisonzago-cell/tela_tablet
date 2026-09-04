@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <!-- Ícones gratuitos do Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Ícones gratuitos do Phosphor Icons (Via CSS puro) -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -44,6 +44,10 @@
             <div class="weather-current">
                 <div class="temp-main">
                     <span id="current-temp">--°</span>
+                </div>
+                <div class="temp-minmax">
+                    <div class="max"><i class="ph ph-arrow-up"></i> <span id="current-max">--°</span></div>
+                    <div class="min"><i class="ph ph-arrow-down"></i> <span id="current-min">--°</span></div>
                 </div>
                 <div class="weather-details">
                     <div class="detail"><i class="ph ph-drop"></i> <span id="current-humidity">--%</span> Umid</div>
