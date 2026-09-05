@@ -15,10 +15,10 @@
 body {
     font-family: 'Outfit', sans-serif;
     color: var(--text-primary);
-    width: 100vw;
-    min-height: 101vh;
-    /* Força um leve scroll vertical para esconder o menu do navegador */
-    overflow-x: hidden;
+    width: 1024px;
+    height: 576px;
+    /* 600px - 24px da barra de status do Android */
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -51,17 +51,16 @@ body {
 
 /* Grid Layout */
 .dashboard-container {
-    width: 95vw;
-    height: 95vh;
+    width: 100%;
+    height: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto 1fr;
-    gap: 20px;
-    padding: 10px;
+    gap: 12px;
+    padding: 8px;
 }
 
-.news-panel,
-.calendar-panel {
+.panel {
     overflow: hidden;
     min-height: 0;
 }
@@ -73,7 +72,7 @@ body {
     -webkit-backdrop-filter: blur(6px);
     border: 1px solid var(--glass-border);
     border-radius: 20px;
-    padding: 24px;
+    padding: 16px;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
@@ -111,21 +110,20 @@ body {
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 30px;
+    padding: 15px;
 }
 
 .time-display {
-    font-size: 13rem;
-    /* Dobrado o tamanho */
+    font-size: 9.5rem;
     font-weight: 700;
     line-height: 1;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     letter-spacing: -2px;
 }
 
 .date-display {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 300;
     color: var(--text-secondary);
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -141,7 +139,7 @@ body {
     display: flex;
     align-items: stretch;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .temp-main {
@@ -149,11 +147,10 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 7rem;
-    /* Aumentado */
     font-weight: 600;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     background: rgba(0, 0, 0, 0.2);
-    padding: 10px 20px;
+    padding: 10px 15px;
     border-radius: 12px;
 }
 
@@ -161,12 +158,11 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: 400;
-    margin-left: 15px;
-    margin-right: auto;
+    margin-left: 10px;
     background: rgba(0, 0, 0, 0.2);
-    padding: 10px 20px;
+    padding: 10px 15px;
     border-radius: 12px;
 }
 
@@ -189,8 +185,10 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    flex-grow: 1;
+    margin-left: 10px;
     background: rgba(0, 0, 0, 0.2);
-    padding: 10px 20px;
+    padding: 8px 15px;
     border-radius: 12px;
 }
 
@@ -227,10 +225,11 @@ body {
     flex-direction: column;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
-    padding: 10px 15px;
-    border-radius: 12px;
-    min-width: 80px;
-    margin-right: 15px;
+    padding: 6px 4px;
+    border-radius: 8px;
+    min-width: 45px;
+    margin-right: 7px;
+    //height: 78px;
 }
 
 .hourly-item:last-child {
@@ -238,13 +237,13 @@ body {
 }
 
 .hourly-time {
-    font-size: 0.9rem;
+    font-size: 0.7rem;
     color: var(--text-secondary);
-    margin-bottom: 5px;
+    margin-bottom: 2px;
 }
 
 .hourly-temp {
-    font-size: 1.6rem;
+    font-size: 1.0rem;
     font-weight: 600;
 }
 
@@ -259,10 +258,10 @@ body {
     justify-content: space-between;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
-    padding: 12px 20px;
+    padding: 8px 15px;
     border-radius: 12px;
-    font-size: 1.2rem;
-    margin-bottom: 12px;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
 }
 
 .daily-item:last-child {
@@ -314,11 +313,11 @@ body {
 
 .news-item {
     background: rgba(0, 0, 0, 0.2);
-    padding: 12px;
+    padding: 10px;
     border-radius: 12px;
     display: flex;
     flex-direction: column;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 .news-header {

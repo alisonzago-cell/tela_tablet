@@ -116,8 +116,8 @@ async function fetchWeather() {
                 <div class="hourly-item">
                     <span class="hourly-time">${h}</span>
                     <span class="hourly-temp">${temp}°</span>
-                    <span style="font-size: 0.8rem; color: var(--text-secondary);"><i class="ph ph-drop"></i> ${rainProb}%</span>
-                    <span style="font-size: 0.8rem; color: var(--text-secondary);"><i class="ph ph-wind"></i> ${windSpeed} <span style="font-size: 0.5rem;">km/h</span></span>
+                    <span style="font-size: 0.7rem; color: var(--text-secondary);"><i class="ph ph-drop"></i> ${rainProb}%</span>
+                    <span style="font-size: 0.7rem; color: var(--text-secondary);"><i class="ph ph-wind"></i> ${windSpeed} <span style="font-size: 0.5rem;">km</span></span>
                 </div>
             `;
         }
@@ -162,6 +162,10 @@ async function fetchWeather() {
     } catch (error) {
         console.error("Erro ao buscar clima: ", error);
         document.getElementById('current-temp').textContent = '--°';
+        const hourlyContainer = document.getElementById('hourly-forecast');
+        if (hourlyContainer) {
+            hourlyContainer.innerHTML = `<div style="color: red; font-size: 0.8rem; padding: 10px;">Erro: ${error.message}. Possível bloqueio temporário (Rate Limit) da API. Aguarde 1 minuto e recarregue.</div>`;
+        }
     }
 }
 fetchWeather();
