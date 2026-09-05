@@ -28,10 +28,10 @@ function updateClock() {
     const minutes = String(now.getMinutes()).padStart(2, '0');
     timeEl.textContent = `${hours}:${minutes}`;
 
-    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    let dateStr = now.toLocaleDateString('pt-BR', options);
-    // Remove " de " por um espaço para ficar mais bonito
-    dateEl.textContent = dateStr;
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    dateEl.textContent = `${day}/${month}/${year}`;
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -219,7 +219,10 @@ async function fetchAllNews() {
                 try {
                     const d = new Date(item.pubDate);
                     if (!isNaN(d.getTime())) {
-                        dateStr = ' • ' + d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' });
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const year = d.getFullYear();
+                        dateStr = ` • ${day}/${month}/${year}`;
                     }
                 } catch(e) {}
             }
@@ -335,3 +338,108 @@ async function renderCalendar() {
 
 renderCalendar();
 setInterval(renderCalendar, 24 * 60 * 60 * 1000); // Atualiza diariamente
+
+// ======== TIMER ========
+let timerSeconds = 0;
+let timerInterval = null;
+const timerDisplay = document.getElementById('timer-display');
+const timerToggleBtn = document.getElementById('timer-toggle-btn');
+
+function updateTimerDisplay() {
+    const h = Math.floor(timerSeconds / 3600);
+    const m = Math.floor((timerSeconds % 3600) / 60);
+    const s = timerSeconds % 60;
+    
+    timerDisplay.textContent = 
+        String(h).padStart(2, '0') + ':' + 
+        String(m).padStart(2, '0') + ':' + 
+        String(s).padStart(2, '0');
+}
+
+function adjustTimer(amount, type) {
+    stopAlarm();
+    if (timerSeconds === 0 && amount < 0) return;
+    
+    if (type === 'm') {
+        timerSeconds += amount * 60;
+    } else if (type === 's') {
+        timerSeconds += amount;
+    }
+    
+    if (timerSeconds < 0) timerSeconds = 0;
+    updateTimerDisplay();
+}
+
+function toggleTimer() {
+    stopAlarm();
+    if (timerInterval) {
+        // Pausar
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timerToggleBtn.innerHTML = '<i class="ph ph-play"></i> Iniciar';
+    } else {
+        // Iniciar
+        if (timerSeconds > 0) {
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerDisplay();
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    timerToggleBtn.innerHTML = '<i class="ph ph-play"></i> Iniciar';
+                    playAlarm();
+                }
+            }, 1000);
+            timerToggleBtn.innerHTML = '<i class="ph ph-pause"></i> Pausar';
+        }
+    }
+}
+
+function resetTimer() {
+    stopAlarm();
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    timerSeconds = 0;
+    updateTimerDisplay();
+    timerToggleBtn.innerHTML = '<i class="ph ph-play"></i> Iniciar';
+}
+
+let alarmInterval = null;
+
+function stopAlarm() {
+    if (alarmInterval) {
+        clearInterval(alarmInterval);
+        alarmInterval = null;
+    }
+}
+
+function playAlarm() {
+    stopAlarm();
+    triggerBeep();
+    alarmInterval = setInterval(triggerBeep, 2000);
+}
+
+function triggerBeep() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); 
+        
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.1); 
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 1.5);
+    } catch (e) {
+        console.error("Áudio não suportado", e);
+    }
+}

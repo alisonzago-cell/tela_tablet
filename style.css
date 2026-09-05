@@ -56,8 +56,17 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto 1fr;
-    gap: 12px;
+    grid-gap: 8px;
+    gap: 8px;
     padding: 8px;
+}
+
+.calendar-timer-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-gap: 8px;
+    gap: 8px;
+    min-height: 0;
 }
 
 .panel {
@@ -439,4 +448,98 @@ body {
 
 .calendar-legend div:last-child {
     margin-bottom: 0;
+}
+
+/* Timer Styles */
+.timer-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+.timer-display {
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    margin-bottom: 8px;
+    letter-spacing: -1px;
+}
+
+.timer-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.timer-col {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-right: 4px;
+}
+
+.timer-col:last-child {
+    margin-right: 0;
+}
+
+.timer-col .timer-btn {
+    margin-bottom: 4px;
+}
+
+.timer-col .timer-btn:last-child {
+    margin-bottom: 0;
+}
+
+.timer-actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.timer-actions .timer-btn {
+    margin-bottom: 8px;
+}
+
+.timer-actions .timer-btn:last-child {
+    margin-bottom: 0;
+}
+
+.timer-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    padding: 6px 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.timer-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.timer-btn:active {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.action-btn {
+    flex-grow: 1;
+    font-size: 0.85rem;
+    padding: 8px 5px;
+}
+
+.action-btn i {
+    margin-right: 4px;
+    font-size: 1.1rem;
 }

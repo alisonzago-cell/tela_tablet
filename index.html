@@ -46,8 +46,8 @@
                     <span id="current-temp">--°</span>
                 </div>
                 <div class="temp-minmax">
-                    <div class="max"><i class="ph ph-arrow-up"></i> <span id="current-max">--°</span></div>
-                    <div class="min"><i class="ph ph-arrow-down"></i> <span id="current-min">--°</span></div>
+                    <div class="max"><i class="ph ph-caret-up"></i> <span id="current-max">--°</span></div>
+                    <div class="min"><i class="ph ph-caret-down"></i> <span id="current-min">--°</span></div>
                 </div>
                 <div class="weather-details">
                     <div class="detail"><i class="ph ph-drop"></i> <span id="current-humidity">--%</span>&nbsp;Umid</div>
@@ -66,23 +66,53 @@
             </div>
         </section>
 
-        <!-- Linha 2, Col 2: Bloco do Calendário -->
-        <section class="panel calendar-panel glass">
-            <div class="panel-header">
-                <h3 id="calendar-month-year"><i class="ph ph-calendar"></i> Calendário</h3>
-            </div>
-            <div class="calendar-grid-wrapper">
-                <div class="calendar-weekdays">
-                    <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+        <!-- Linha 2, Col 2: Container Calendário e Timer -->
+        <div class="calendar-timer-container">
+            <section class="panel calendar-panel glass">
+                <div class="panel-header">
+                    <h3 id="calendar-month-year"><i class="ph ph-calendar"></i> Calendário</h3>
                 </div>
-                <div class="calendar-grid" id="calendar-grid">
-                    <!-- Dias injetados via JS -->
+                <div class="calendar-grid-wrapper">
+                    <div class="calendar-weekdays">
+                        <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                    </div>
+                    <div class="calendar-grid" id="calendar-grid">
+                        <!-- Dias injetados via JS -->
+                    </div>
                 </div>
-            </div>
-            <div class="calendar-legend" id="calendar-legend">
-                <!-- Legenda dos feriados do mês -->
-            </div>
-        </section>    </main>
+                <div class="calendar-legend" id="calendar-legend">
+                    <!-- Legenda dos feriados do mês -->
+                </div>
+            </section>
+
+            <section class="panel timer-panel glass">
+                <div class="panel-header">
+                    <h3><i class="ph ph-timer"></i> Timer</h3>
+                </div>
+                <div class="timer-body">
+                    <span id="timer-display" class="timer-display">00:00:00</span>
+                    <div class="timer-controls">
+                        <div class="timer-col">
+                            <button class="timer-btn" onclick="adjustTimer(10, 'm')">+10m</button>
+                            <button class="timer-btn" onclick="adjustTimer(-10, 'm')">-10m</button>
+                        </div>
+                        <div class="timer-col">
+                            <button class="timer-btn" onclick="adjustTimer(1, 'm')">+1m</button>
+                            <button class="timer-btn" onclick="adjustTimer(-1, 'm')">-1m</button>
+                        </div>
+                        <div class="timer-col">
+                            <button class="timer-btn" onclick="adjustTimer(1, 's')">+1s</button>
+                            <button class="timer-btn" onclick="adjustTimer(-1, 's')">-1s</button>
+                        </div>
+                    </div>
+                    <div class="timer-actions">
+                        <button class="timer-btn action-btn" onclick="toggleTimer()" id="timer-toggle-btn"><i class="ph ph-play"></i> Iniciar</button>
+                        <button class="timer-btn action-btn" onclick="resetTimer()"><i class="ph ph-arrow-counter-clockwise"></i> Reset</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
 
     <script src="script.js"></script>
 </body>
