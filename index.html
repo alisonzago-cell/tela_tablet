@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- Backgrounds for crossfade -->
     <div class="bg" id="bg1"></div>
@@ -37,32 +39,58 @@
         </section>
 
         <!-- Linha 2, Col 1: Bloco do Clima -->
-        <section class="panel weather-panel glass">
-            <div class="weather-header">
-                <h3><i class="ph ph-map-pin"></i> Bom Retiro, São Paulo</h3>
-            </div>
-            <div class="weather-current">
-                <div class="temp-main">
-                    <span id="current-temp">--°</span>
-                </div>
-                <div class="temp-minmax">
-                    <div class="max"><i class="ph ph-caret-up"></i> <span id="current-max">--°</span></div>
-                    <div class="min"><i class="ph ph-caret-down"></i> <span id="current-min">--°</span></div>
-                </div>
-                <div class="weather-details">
-                    <div class="detail"><i class="ph ph-drop"></i> <span id="current-humidity">--%</span>&nbsp;Umid</div>
-                    <div class="detail"><i class="ph ph-wind"></i> <span id="current-wind">--</span>&nbsp;km/h</div>
-                    <div class="detail"><i class="ph ph-cloud-rain"></i> <span id="current-rain">--%</span>&nbsp;Chuva</div>
+        <section class="panel weather-panel glass" style="padding: 0;">
+
+            <!-- Header Fixo do Clima com as Setinhas -->
+            <div class="weather-header"
+                style="padding: 16px 16px 0 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin-bottom: 0;"><i class="ph ph-map-pin"></i> Bom Retiro, São Paulo</h3>
+                <div class="weather-slider-controls"
+                    style="cursor: pointer; display: flex; gap: 4px; color: var(--text-secondary);"
+                    onclick="toggleWeatherSlider()">
+                    <i class="ph ph-caret-left" style="font-size: 1.2rem; transition: color 0.2s;"></i>
+                    <i class="ph ph-caret-right" style="font-size: 1.2rem; transition: color 0.2s;"></i>
                 </div>
             </div>
-            <div class="weather-hourly" id="hourly-forecast">
-                <!-- Forecast items injected via JS -->
-            </div>
-            <div class="weather-header" style="margin-top: 15px; display: none;">
-                <h3><i class="ph ph-calendar-blank"></i> Próximos 5 dias</h3>
-            </div>
-            <div class="weather-daily" id="daily-forecast" style="display: none;">
-                <!-- Injected via JS -->
+
+            <!-- Wrapper Deslizante -->
+            <div id="weather-slider"
+                style="display: flex; width: 200%; transition: transform 0.4s ease-in-out; flex-grow: 1;">
+
+                <!-- Slide 1: Clima Atual -->
+                <div class="weather-slide-current"
+                    style="width: 50%; padding: 0 16px 16px 16px; display: flex; flex-direction: column;">
+                    <div class="weather-current">
+                        <div class="temp-main">
+                            <span id="current-temp">--°</span>
+                        </div>
+                        <div class="temp-minmax">
+                            <div class="max"><i class="ph ph-caret-up"></i> <span id="current-max">--°</span></div>
+                            <div class="min"><i class="ph ph-caret-down"></i> <span id="current-min">--°</span></div>
+                        </div>
+                        <div class="weather-details">
+                            <div class="detail"><i class="ph ph-drop"></i> <span
+                                    id="current-humidity">--%</span>&nbsp;Umid</div>
+                            <div class="detail"><i class="ph ph-wind"></i> <span id="current-wind">--</span>&nbsp;km/h
+                            </div>
+                            <div class="detail"><i class="ph ph-cloud-rain"></i> <span
+                                    id="current-rain">--%</span>&nbsp;Chuva</div>
+                        </div>
+                    </div>
+                    <div class="weather-hourly" id="hourly-forecast">
+                        <!-- Forecast items injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Slide 2: Próximos Dias -->
+                <div class="weather-slide-daily"
+                    style="width: 50%; padding: 0 16px 16px 16px; display: flex; flex-direction: column;">
+                    <div class="weather-daily" id="daily-forecast"
+                        style="display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
             </div>
         </section>
 
@@ -74,7 +102,13 @@
                 </div>
                 <div class="calendar-grid-wrapper">
                     <div class="calendar-weekdays">
-                        <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                        <div>Dom</div>
+                        <div>Seg</div>
+                        <div>Ter</div>
+                        <div>Qua</div>
+                        <div>Qui</div>
+                        <div>Sex</div>
+                        <div>Sáb</div>
                     </div>
                     <div class="calendar-grid" id="calendar-grid">
                         <!-- Dias injetados via JS -->
@@ -85,35 +119,66 @@
                 </div>
             </section>
 
-            <section class="panel timer-panel glass">
-                <div class="panel-header">
-                    <h3><i class="ph ph-timer"></i> Timer</h3>
-                </div>
-                <div class="timer-body">
-                    <span id="timer-display" class="timer-display">00:00:00</span>
-                    <div class="timer-controls">
-                        <div class="timer-col">
-                            <button class="timer-btn" onclick="adjustTimer(10, 'm')">+10m</button>
-                            <button class="timer-btn" onclick="adjustTimer(-10, 'm')">-10m</button>
+            <div class="right-col-wrapper" style="display: flex; flex-direction: column; min-height: 0;">
+                <section class="panel timer-panel glass" style="flex-grow: 1; margin-bottom: 8px;">
+                    <div class="panel-header" style="margin-bottom: 4px;">
+                        <h3 style="font-size: 1.3rem;"><i class="ph ph-timer"></i> Timer</h3>
+                    </div>
+                    <div class="timer-body">
+                        <span id="timer-display" class="timer-display">00:00:00</span>
+                        <div class="timer-controls">
+                            <div class="timer-col">
+                                <button class="timer-btn" onclick="adjustTimer(10, 'm')">+10m</button>
+                                <button class="timer-btn" onclick="adjustTimer(-10, 'm')">-10m</button>
+                            </div>
+                            <div class="timer-col">
+                                <button class="timer-btn" onclick="adjustTimer(1, 'm')">+1m</button>
+                                <button class="timer-btn" onclick="adjustTimer(-1, 'm')">-1m</button>
+                            </div>
+                            <div class="timer-col">
+                                <button class="timer-btn" onclick="adjustTimer(1, 's')">+1s</button>
+                                <button class="timer-btn" onclick="adjustTimer(-1, 's')">-1s</button>
+                            </div>
                         </div>
-                        <div class="timer-col">
-                            <button class="timer-btn" onclick="adjustTimer(1, 'm')">+1m</button>
-                            <button class="timer-btn" onclick="adjustTimer(-1, 'm')">-1m</button>
-                        </div>
-                        <div class="timer-col">
-                            <button class="timer-btn" onclick="adjustTimer(1, 's')">+1s</button>
-                            <button class="timer-btn" onclick="adjustTimer(-1, 's')">-1s</button>
+                        <div class="timer-actions">
+                            <button class="timer-btn action-btn" onclick="toggleTimer()" id="timer-toggle-btn"><i
+                                    class="ph ph-play"></i> Iniciar</button>
+                            <button class="timer-btn action-btn" onclick="resetTimer()"><i
+                                    class="ph ph-arrow-counter-clockwise"></i> Reset</button>
                         </div>
                     </div>
-                    <div class="timer-actions">
-                        <button class="timer-btn action-btn" onclick="toggleTimer()" id="timer-toggle-btn"><i class="ph ph-play"></i> Iniciar</button>
-                        <button class="timer-btn action-btn" onclick="resetTimer()"><i class="ph ph-arrow-counter-clockwise"></i> Reset</button>
+                </section>
+
+                <section class="panel glass" style="padding: 13px 15px; margin-bottom: 0px;">
+                    <div style="display: table; width: 100%; box-sizing: border-box; margin-bottom: 8px;">
+                        <span
+                            style="font-size: 0.8rem; font-weight: 600; display: table-cell; vertical-align: middle; text-align: left;">Tela
+                            Ligada:</span>
+                        <div style="display: table-cell; vertical-align: middle; text-align: right; width: 36px;">
+                            <label class="switch" style="margin: 0; display: inline-block; vertical-align: middle;">
+                                <input type="checkbox" id="wakelock-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
                     </div>
-                </div>
-            </section>
+                    <button class="timer-btn" style="width: 100%; margin: 0; padding: 4px; font-size: 0.85rem;"
+                        onclick="location.reload()">
+                        <i class="ph ph-arrows-clockwise" style="margin-right: 4px; font-size: 1.1rem;"></i> Atualizar
+                    </button>
+                </section>
+            </div>
         </div>
     </main>
 
+    <!-- WakeLock Video -->
+    <video id="wakeLockVideo" playsinline loop muted autoplay width="1" height="1"
+        style="position: absolute; opacity: 0; pointer-events: none;">
+        <source
+            src="data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29tYXZjMQAAADpmcmVlAAAEb21kYXQAAAHAAAR42mNgGAWjYBSMglEwCoYnAAADAAGAAAB"
+            type="video/mp4">
+    </video>
+
     <script src="script.js"></script>
 </body>
+
 </html>

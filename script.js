@@ -45,18 +45,24 @@ bg1.style.backgroundImage = `url('${backgroundImages[currentBgIndex]}')`;
 
 function changeBackground() {
     currentBgIndex = (currentBgIndex + 1) % backgroundImages.length;
-    const nextImage = `url('${backgroundImages[currentBgIndex]}')`;
+    const nextImageUrl = backgroundImages[currentBgIndex];
 
-    if (isBg1Active) {
-        bg2.style.backgroundImage = nextImage;
-        bg2.style.opacity = 1;
-        bg1.style.opacity = 0;
-    } else {
-        bg1.style.backgroundImage = nextImage;
-        bg1.style.opacity = 1;
-        bg2.style.opacity = 0;
-    }
-    isBg1Active = !isBg1Active;
+    const img = new Image();
+    img.src = nextImageUrl;
+    
+    img.onload = () => {
+        const nextImage = `url('${nextImageUrl}')`;
+        if (isBg1Active) {
+            bg2.style.backgroundImage = nextImage;
+            bg2.style.opacity = 1;
+            bg1.style.opacity = 0;
+        } else {
+            bg1.style.backgroundImage = nextImage;
+            bg1.style.opacity = 1;
+            bg2.style.opacity = 0;
+        }
+        isBg1Active = !isBg1Active;
+    };
 }
 setInterval(changeBackground, CHANGE_BG_INTERVAL);
 
@@ -65,7 +71,7 @@ setInterval(changeBackground, CHANGE_BG_INTERVAL);
 // ======== PREVISÃO DO TEMPO ========
 async function fetchWeather() {
     try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8`;
 
         const response = await fetch(url);
         const data = await response.json();
@@ -130,8 +136,8 @@ async function fetchWeather() {
             let dailyHtml = '';
             const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
-            // Começa de i = 1 para pegar o dia seguinte em diante. Pega próximos 5 dias.
-            for (let i = 1; i <= 5; i++) {
+            // Começa de i = 1 para pegar o dia seguinte em diante. Pega próximos 7 dias.
+            for (let i = 1; i <= 7; i++) {
                 if (i >= data.daily.time.length) break;
 
                 // Tratar timezone para pegar dia da semana correto local
@@ -151,6 +157,7 @@ async function fetchWeather() {
                         <span class="daily-rain"><i class="ph ph-drop"></i> ${pProb}%</span>
                         <div class="daily-temps">
                             <span class="temp-max">${tMax}°</span>
+                            <span style="color: var(--text-primary); font-weight: 400;">/</span>
                             <span class="temp-min">${tMin}°</span>
                         </div>
                     </div>
@@ -170,6 +177,20 @@ async function fetchWeather() {
 }
 fetchWeather();
 setInterval(fetchWeather, UPDATE_WEATHER_INTERVAL);
+
+// Lógica do Slider do Clima
+let isWeatherSlideDaily = false;
+function toggleWeatherSlider() {
+    const slider = document.getElementById('weather-slider');
+    if (!slider) return;
+    
+    isWeatherSlideDaily = !isWeatherSlideDaily;
+    if (isWeatherSlideDaily) {
+        slider.style.transform = 'translateX(-50%)';
+    } else {
+        slider.style.transform = 'translateX(0)';
+    }
+}
 
 // ======== NOTÍCIAS ========
 const newsList = document.getElementById('news-list');
@@ -442,4 +463,54 @@ function triggerBeep() {
     } catch (e) {
         console.error("Áudio não suportado", e);
     }
+}
+
+// ======== WAKE LOCK ========
+const wakeLockVideo = document.getElementById('wakeLockVideo');
+const wakeLockToggle = document.getElementById('wakelock-toggle');
+let isWakeLockIntended = true; // Por padrão, a intenção é manter a tela ligada
+
+function syncToggleState() {
+    if (wakeLockToggle) {
+        wakeLockToggle.checked = !wakeLockVideo.paused;
+    }
+}
+
+if (wakeLockVideo && wakeLockToggle) {
+    // Escuta eventos reais do vídeo para sempre refletir a realidade
+    wakeLockVideo.addEventListener('play', syncToggleState);
+    wakeLockVideo.addEventListener('pause', syncToggleState);
+
+    // Tenta autoplay imediato
+    const playPromise = wakeLockVideo.play();
+    if (playPromise !== undefined) {
+        playPromise.catch(e => {
+            console.log("Autoplay do WakeLock bloqueado. Aguardando interação.");
+            syncToggleState();
+        });
+    }
+
+    // Interação do usuário via toggle
+    wakeLockToggle.addEventListener('change', function(e) {
+        if (e.target.checked) {
+            isWakeLockIntended = true;
+            wakeLockVideo.play();
+        } else {
+            isWakeLockIntended = false;
+            wakeLockVideo.pause();
+        }
+    });
+
+    // Se a intenção for ON, o primeiro toque na tela aciona o vídeo (Bypassa bloqueio inicial)
+    document.addEventListener('touchstart', function() {
+        if (isWakeLockIntended && wakeLockVideo.paused) {
+            wakeLockVideo.play();
+        }
+    }, {passive: true});
+
+    document.addEventListener('click', function() {
+        if (isWakeLockIntended && wakeLockVideo.paused) {
+            wakeLockVideo.play();
+        }
+    });
 }
