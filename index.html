@@ -65,8 +65,8 @@
                             <span id="current-temp">--°</span>
                         </div>
                         <div class="temp-minmax">
-                            <div class="max"><i class="ph ph-caret-up"></i> <span id="current-max">--°</span></div>
-                            <div class="min"><i class="ph ph-caret-down"></i> <span id="current-min">--°</span></div>
+                            <div class="max"><i class="ph ph-caret-up"></i><span id="current-max">--°</span></div>
+                            <div class="min"><i class="ph ph-caret-down"></i><span id="current-min">--°</span></div>
                         </div>
                         <div class="weather-details">
                             <div class="detail"><i class="ph ph-drop"></i> <span
@@ -150,17 +150,7 @@
                 </section>
 
                 <section class="panel glass" style="padding: 13px 15px; margin-bottom: 0px;">
-                    <div style="display: table; width: 100%; box-sizing: border-box; margin-bottom: 8px;">
-                        <span
-                            style="font-size: 0.8rem; font-weight: 600; display: table-cell; vertical-align: middle; text-align: left;">Tela
-                            Ligada:</span>
-                        <div style="display: table-cell; vertical-align: middle; text-align: right; width: 36px;">
-                            <label class="switch" style="margin: 0; display: inline-block; vertical-align: middle;">
-                                <input type="checkbox" id="wakelock-toggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                    </div>
+
                     <button class="timer-btn" style="width: 100%; margin: 0; padding: 4px; font-size: 0.85rem;"
                         onclick="location.reload()">
                         <i class="ph ph-arrows-clockwise" style="margin-right: 4px; font-size: 1.1rem;"></i> Atualizar
@@ -170,13 +160,6 @@
         </div>
     </main>
 
-    <!-- WakeLock Video -->
-    <video id="wakeLockVideo" playsinline loop muted autoplay width="1" height="1"
-        style="position: absolute; opacity: 0; pointer-events: none;">
-        <source
-            src="data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAAAAG1wNDJpc29tYXZjMQAAADpmcmVlAAAEb21kYXQAAAHAAAR42mNgGAWjYBSMglEwCoYnAAADAAGAAAB"
-            type="video/mp4">
-    </video>
 
     <script src="script.js"></script>
 </body>

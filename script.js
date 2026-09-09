@@ -4,15 +4,31 @@ const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
 const LATITUDE = -23.5276;
 const LONGITUDE = -46.6384;
 
-// Imagens de natureza curadas para o fundo (Unsplash CDN/Source)
+// Função genérica para embaralhar array
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+// Imagens de fundo locais (80 imagens curadas baixadas)
 const backgroundImages = [
-    'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=2074&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1506744012022-28d699411967?q=80&w=2000&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=2070&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1433086966358-54859d0ed716?q=80&w=1887&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1511497584788-876760111969?q=80&w=2000&auto=format&fit=crop'
+    "fundos/fundo_01.jpg", "fundos/fundo_03.jpg", "fundos/fundo_04.jpg", "fundos/fundo_08.jpg",
+    "fundos/fundo_09.jpg", "fundos/fundo_10.jpg", "fundos/fundo_12.jpg", "fundos/fundo_13.jpg",
+    "fundos/fundo_16.jpg", "fundos/fundo_17.jpg", "fundos/fundo_19.jpg", "fundos/fundo_21.jpg",
+    "fundos/fundo_27.jpg", "fundos/fundo_28.jpg", "fundos/fundo_29.jpg", "fundos/fundo_33.jpg",
+    "fundos/fundo_34.jpg", "fundos/fundo_35.jpg", "fundos/fundo_36.jpg", "fundos/fundo_38.jpg",
+    "fundos/fundo_41.jpg", "fundos/fundo_43.jpg", "fundos/fundo_44.jpg", "fundos/fundo_45.jpg",
+    "fundos/fundo_46.jpg", "fundos/fundo_49.jpg", "fundos/fundo_52.jpg", "fundos/fundo_53.jpg",
+    "fundos/fundo_55.jpg", "fundos/fundo_56.jpg", "fundos/fundo_57.jpg", "fundos/fundo_58.jpg",
+    "fundos/fundo_60.jpg", "fundos/fundo_61.jpg", "fundos/fundo_62.jpg", "fundos/fundo_63.jpg",
+    "fundos/fundo_65.jpg", "fundos/fundo_69.jpg", "fundos/fundo_70.jpg", "fundos/fundo_71.jpg",
+    "fundos/fundo_72.jpg", "fundos/fundo_73.jpg", "fundos/fundo_74.jpg", "fundos/fundo_76.jpg",
+    "fundos/fundo_77.jpg", "fundos/fundo_78.jpg", "fundos/fundo_79.jpg", "fundos/fundo_80.jpg"
 ];
+// Embaralha as imagens toda vez que o painel é carregado
+shuffleArray(backgroundImages);
 
 // Elementos
 const bg1 = document.getElementById('bg1');
@@ -201,13 +217,7 @@ const RSS_FEEDS = [
     { url: 'https://feeds.bbci.co.uk/portuguese/rss.xml', tag: 'BBC', class: 'tag-bbc', source: 'BBC Brasil' }
 ];
 
-// Função para embaralhar array
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
+// ======= NOTÍCIAS =======
 
 async function fetchAllNews() {
     newsList.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">Carregando notícias...</div>';
@@ -465,52 +475,4 @@ function triggerBeep() {
     }
 }
 
-// ======== WAKE LOCK ========
-const wakeLockVideo = document.getElementById('wakeLockVideo');
-const wakeLockToggle = document.getElementById('wakelock-toggle');
-let isWakeLockIntended = true; // Por padrão, a intenção é manter a tela ligada
 
-function syncToggleState() {
-    if (wakeLockToggle) {
-        wakeLockToggle.checked = !wakeLockVideo.paused;
-    }
-}
-
-if (wakeLockVideo && wakeLockToggle) {
-    // Escuta eventos reais do vídeo para sempre refletir a realidade
-    wakeLockVideo.addEventListener('play', syncToggleState);
-    wakeLockVideo.addEventListener('pause', syncToggleState);
-
-    // Tenta autoplay imediato
-    const playPromise = wakeLockVideo.play();
-    if (playPromise !== undefined) {
-        playPromise.catch(e => {
-            console.log("Autoplay do WakeLock bloqueado. Aguardando interação.");
-            syncToggleState();
-        });
-    }
-
-    // Interação do usuário via toggle
-    wakeLockToggle.addEventListener('change', function(e) {
-        if (e.target.checked) {
-            isWakeLockIntended = true;
-            wakeLockVideo.play();
-        } else {
-            isWakeLockIntended = false;
-            wakeLockVideo.pause();
-        }
-    });
-
-    // Se a intenção for ON, o primeiro toque na tela aciona o vídeo (Bypassa bloqueio inicial)
-    document.addEventListener('touchstart', function() {
-        if (isWakeLockIntended && wakeLockVideo.paused) {
-            wakeLockVideo.play();
-        }
-    }, {passive: true});
-
-    document.addEventListener('click', function() {
-        if (isWakeLockIntended && wakeLockVideo.paused) {
-            wakeLockVideo.play();
-        }
-    });
-}
