@@ -8,136 +8,160 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Ícones gratuitos do Phosphor Icons (Via CSS puro) -->
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+    <!-- Backgrounds for crossfade -->
     <div class="bg" id="bg1"></div>
     <div class="bg" id="bg2" style="opacity: 0;"></div>
     <div class="bg-overlay"></div>
 
     <main class="dashboard-container">
-        
-        <!-- LINHA SUPERIOR -->
-        <div class="dash-row top-row">
-            <!-- Bloco do Relógio (Esquerda) -->
-            <section class="panel clock-panel glass">
-                <h1 id="time" class="time-display">00:00</h1>
-                <h2 id="date" class="date-display">Carregando data...</h2>
-            </section>
+        <!-- Linha 1, Col 1: Bloco do Relógio -->
+        <section class="panel clock-panel glass">
+            <h1 id="time" class="time-display">00:00</h1>
+            <h2 id="date" class="date-display">Carregando data...</h2>
+        </section>
 
-            <!-- Bloco de Notícias (Direita) -->
-            <section class="panel news-panel glass">
+        <!-- Linha 1, Col 2: Bloco de Notícias -->
+        <section class="panel news-panel glass">
+            <div class="panel-header">
+                <h3><i class="ph ph-newspaper"></i> Últimas Notícias</h3>
+            </div>
+            <div class="news-list-container" id="news-list-container">
+                <div class="news-list" id="news-list">
+                    <div style="text-align: center; color: var(--text-secondary);">Carregando notícias...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Linha 2, Col 1: Bloco do Clima -->
+        <section class="panel weather-panel glass" style="padding: 0;">
+
+            <!-- Header Fixo do Clima com as Setinhas -->
+            <div class="weather-header"
+                style="padding: 16px 16px 0 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin-bottom: 0;"><i class="ph ph-map-pin"></i> Bom Retiro, São Paulo</h3>
+                <div class="weather-slider-controls"
+                    style="cursor: pointer; display: flex; gap: 4px; color: var(--text-secondary);"
+                    onclick="toggleWeatherSlider()">
+                    <i class="ph ph-caret-left" style="font-size: 1.2rem; transition: color 0.2s;"></i>
+                    <i class="ph ph-caret-right" style="font-size: 1.2rem; transition: color 0.2s;"></i>
+                </div>
+            </div>
+
+            <!-- Wrapper Deslizante -->
+            <div id="weather-slider"
+                style="display: flex; width: 200%; transition: transform 0.4s ease-in-out; flex-grow: 1;">
+
+                <!-- Slide 1: Clima Atual -->
+                <div class="weather-slide-current"
+                    style="width: 50%; padding: 0 16px 16px 16px; display: flex; flex-direction: column;">
+                    <div class="weather-current">
+                        <div class="temp-main">
+                            <span id="current-temp">--°</span>
+                        </div>
+                        <div class="temp-minmax">
+                            <div class="max"><i class="ph ph-caret-up"></i><span id="current-max">--°</span></div>
+                            <div class="min"><i class="ph ph-caret-down"></i><span id="current-min">--°</span></div>
+                        </div>
+                        <div class="weather-details">
+                            <div class="detail"><i class="ph ph-drop"></i> <span
+                                    id="current-humidity">--%</span>&nbsp;Umid</div>
+                            <div class="detail"><i class="ph ph-wind"></i> <span id="current-wind">--</span>&nbsp;km/h
+                            </div>
+                            <div class="detail"><i class="ph ph-cloud-rain"></i> <span
+                                    id="current-rain">--%</span>&nbsp;Chuva</div>
+                        </div>
+                    </div>
+                    <div class="weather-hourly" id="hourly-forecast">
+                        <!-- Forecast items injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Slide 2: Próximos Dias -->
+                <div class="weather-slide-daily"
+                    style="width: 50%; padding: 0 16px 16px 16px; display: flex; flex-direction: column;">
+                    <div class="weather-daily" id="daily-forecast"
+                        style="display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Linha 2, Col 2: Container Calendário e Timer -->
+        <div class="calendar-timer-container">
+            <section class="panel calendar-panel glass">
                 <div class="panel-header">
-                    <h3><i class="ph ph-newspaper"></i> Últimas Notícias</h3>
+                    <h3 id="calendar-month-year"><i class="ph ph-calendar"></i> Calendário</h3>
                 </div>
-                <div class="news-list-container" id="news-list-container">
-                    <div class="news-list" id="news-list">
-                        <div style="text-align: center; color: #e2e8f0;">Carregando notícias...</div>
+                <div class="calendar-grid-wrapper">
+                    <div class="calendar-weekdays">
+                        <div>Dom</div>
+                        <div>Seg</div>
+                        <div>Ter</div>
+                        <div>Qua</div>
+                        <div>Qui</div>
+                        <div>Sex</div>
+                        <div>Sáb</div>
                     </div>
-                </div>
-            </section>
-        </div>
-
-        <!-- LINHA INFERIOR -->
-        <div class="dash-row bottom-row">
-            <!-- Bloco do Clima (Esquerda) -->
-            <section class="panel weather-panel glass" style="padding: 0;">
-                <div class="weather-header"
-                    style="padding: 16px 16px 0 16px; margin-bottom: 10px; display: -webkit-box; display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin-bottom: 0;"><i class="ph ph-map-pin"></i> Bom Retiro, São Paulo</h3>
-                    <div class="weather-slider-controls"
-                        style="cursor: pointer; display: -webkit-box; display: flex; color: #e2e8f0;"
-                        onclick="toggleWeatherSlider()">
-                        <i class="ph ph-caret-left" style="font-size: 1.2rem; margin-right: 4px;"></i>
-                        <i class="ph ph-caret-right" style="font-size: 1.2rem;"></i>
+                    <div class="calendar-grid" id="calendar-grid">
+                        <!-- Dias injetados via JS -->
                     </div>
                 </div>
-
-                <div id="weather-slider"
-                    style="display: -webkit-box; display: flex; width: 200%; transition: -webkit-transform 0.4s ease-in-out; transition: transform 0.4s ease-in-out; flex-grow: 1;">
-
-                    <div class="weather-slide-current"
-                        style="width: 50%; padding: 0 16px 16px 16px; display: -webkit-box; display: flex; flex-direction: column; -webkit-box-orient: vertical;">
-                        <div class="weather-current">
-                            <div class="temp-main">
-                                <span id="current-temp">--°</span>
-                            </div>
-                            <div class="temp-minmax">
-                                <div class="max"><i class="ph ph-caret-up"></i><span id="current-max">--°</span></div>
-                                <div class="min"><i class="ph ph-caret-down"></i><span id="current-min">--°</span></div>
-                            </div>
-                            <div class="weather-details">
-                                <div class="detail"><i class="ph ph-drop"></i> <span id="current-humidity">--%</span>&nbsp;Umid</div>
-                                <div class="detail"><i class="ph ph-wind"></i> <span id="current-wind">--</span>&nbsp;km/h</div>
-                                <div class="detail"><i class="ph ph-cloud-rain"></i> <span id="current-rain">--%</span>&nbsp;Chuva</div>
-                            </div>
-                        </div>
-                        <div class="weather-hourly" id="hourly-forecast">
-                        </div>
-                    </div>
-
-                    <div class="weather-slide-daily"
-                        style="width: 50%; padding: 0 16px 16px 16px; display: -webkit-box; display: flex; flex-direction: column; -webkit-box-orient: vertical;">
-                        <div class="weather-daily" id="daily-forecast"
-                            style="display: -webkit-box; display: flex; flex-direction: column; -webkit-box-orient: vertical;">
-                        </div>
-                    </div>
+                <div class="calendar-legend" id="calendar-legend">
+                    <!-- Legenda dos feriados do mês -->
                 </div>
             </section>
 
-            <!-- Container Calendário e Timer (Direita) -->
-            <div class="calendar-timer-container">
-                <section class="panel calendar-panel glass">
-                    <div class="panel-header">
-                        <h3 id="calendar-month-year"><i class="ph ph-calendar"></i> Calendário</h3>
+            <div class="right-col-wrapper" style="display: flex; flex-direction: column; min-height: 0;">
+                <section class="panel timer-panel glass" style="flex-grow: 1; margin-bottom: 8px;">
+                    <div class="panel-header" style="margin-bottom: 4px;">
+                        <h3 style="font-size: 1.3rem;"><i class="ph ph-timer"></i> Timer</h3>
                     </div>
-                    <div class="calendar-grid-wrapper">
-                        <div class="calendar-weekdays">
-                            <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                    <div class="timer-body">
+                        <span id="timer-display" class="timer-display">00:00:00</span>
+                        <div class="timer-controls">
+                            <div class="timer-col">
+                                <button class="timer-btn" onclick="adjustTimer(10, 'm')">+10m</button>
+                                <button class="timer-btn" onclick="adjustTimer(-10, 'm')">-10m</button>
+                            </div>
+                            <div class="timer-col">
+                                <button class="timer-btn" onclick="adjustTimer(1, 'm')">+1m</button>
+                                <button class="timer-btn" onclick="adjustTimer(-1, 'm')">-1m</button>
+                            </div>
+                            <div class="timer-col">
+                                <button class="timer-btn" onclick="adjustTimer(1, 's')">+1s</button>
+                                <button class="timer-btn" onclick="adjustTimer(-1, 's')">-1s</button>
+                            </div>
                         </div>
-                        <div class="calendar-grid" id="calendar-grid">
+                        <div class="timer-actions">
+                            <button class="timer-btn action-btn" onclick="toggleTimer()" id="timer-toggle-btn"><i
+                                    class="ph ph-play"></i> Iniciar</button>
+                            <button class="timer-btn action-btn" onclick="resetTimer()"><i
+                                    class="ph ph-arrow-counter-clockwise"></i> Reset</button>
                         </div>
-                    </div>
-                    <div class="calendar-legend" id="calendar-legend">
                     </div>
                 </section>
 
-                <div class="right-col-wrapper" style="display: -webkit-box; display: flex; flex-direction: column; -webkit-box-orient: vertical; min-height: 0; width: 140px;">
-                    <section class="panel timer-panel glass" style="flex-grow: 1; -webkit-box-flex: 1; margin-bottom: 8px;">
-                        <div class="panel-header" style="margin-bottom: 4px;">
-                            <h3 style="font-size: 1.3rem;"><i class="ph ph-timer"></i> Timer</h3>
-                        </div>
-                        <div class="timer-body">
-                            <span id="timer-display" class="timer-display">00:00:00</span>
-                            <div class="timer-controls">
-                                <div class="timer-col">
-                                    <button class="timer-btn" onclick="adjustTimer(10, 'm')">+10m</button>
-                                    <button class="timer-btn" onclick="adjustTimer(-10, 'm')">-10m</button>
-                                </div>
-                                <div class="timer-col">
-                                    <button class="timer-btn" onclick="adjustTimer(1, 'm')">+1m</button>
-                                    <button class="timer-btn" onclick="adjustTimer(-1, 'm')">-1m</button>
-                                </div>
-                            </div>
-                            <div class="timer-actions">
-                                <button class="timer-btn action-btn" onclick="toggleTimer()" id="timer-toggle-btn"><i class="ph ph-play"></i> Iniciar</button>
-                                <button class="timer-btn action-btn" onclick="resetTimer()"><i class="ph ph-arrow-counter-clockwise"></i> Reset</button>
-                            </div>
-                        </div>
-                    </section>
+                <section class="panel glass" style="padding: 13px 15px; margin-bottom: 0px;">
 
-                    <section class="panel glass" style="padding: 13px 15px; margin-bottom: 0px;">
-                        <button class="timer-btn" style="width: 100%; margin: 0; padding: 4px; font-size: 0.85rem;" onclick="location.reload()">
-                            <i class="ph ph-arrows-clockwise" style="margin-right: 4px; font-size: 1.1rem;"></i> Atualizar
-                        </button>
-                    </section>
-                </div>
+                    <button class="timer-btn" style="width: 100%; margin: 0; padding: 4px; font-size: 0.85rem;"
+                        onclick="location.reload()">
+                        <i class="ph ph-arrows-clockwise" style="margin-right: 4px; font-size: 1.1rem;"></i> Atualizar
+                    </button>
+                </section>
             </div>
         </div>
     </main>
 
+
     <script src="script.js"></script>
 </body>
+
 </html>

@@ -1,26 +1,19 @@
 // Configurações
-var UPDATE_WEATHER_INTERVAL = 30 * 60 * 1000; // 30 min
-var CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
-var LATITUDE = -23.5276;
-var LONGITUDE = -46.6384;
-
-// PadStart Polyfill/Helper para números antigos
-function padZero(num) {
-    return num < 10 ? '0' + num : '' + num;
-}
+const UPDATE_WEATHER_INTERVAL = 30 * 60 * 1000; // 30 min
+const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
+const LATITUDE = -23.5276;
+const LONGITUDE = -46.6384;
 
 // Função genérica para embaralhar array
 function shuffleArray(array) {
-    for (var i = array.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
     }
 }
 
 // Imagens de fundo locais (80 imagens curadas baixadas)
-var backgroundImages = [
+const backgroundImages = [
     "fundos/fundo_01.jpg", "fundos/fundo_03.jpg", "fundos/fundo_04.jpg", "fundos/fundo_08.jpg",
     "fundos/fundo_09.jpg", "fundos/fundo_10.jpg", "fundos/fundo_12.jpg", "fundos/fundo_13.jpg",
     "fundos/fundo_16.jpg", "fundos/fundo_17.jpg", "fundos/fundo_19.jpg", "fundos/fundo_21.jpg",
@@ -34,46 +27,47 @@ var backgroundImages = [
     "fundos/fundo_72.jpg", "fundos/fundo_73.jpg", "fundos/fundo_74.jpg", "fundos/fundo_76.jpg",
     "fundos/fundo_77.jpg", "fundos/fundo_78.jpg", "fundos/fundo_79.jpg", "fundos/fundo_80.jpg"
 ];
+// Embaralha as imagens toda vez que o painel é carregado
 shuffleArray(backgroundImages);
 
 // Elementos
-var bg1 = document.getElementById('bg1');
-var bg2 = document.getElementById('bg2');
-var timeEl = document.getElementById('time');
-var dateEl = document.getElementById('date');
+const bg1 = document.getElementById('bg1');
+const bg2 = document.getElementById('bg2');
+const timeEl = document.getElementById('time');
+const dateEl = document.getElementById('date');
 
 // ======== RELÓGIO & DATA ========
 function updateClock() {
-    var now = new Date();
+    const now = new Date();
 
-    var hours = padZero(now.getHours());
-    var minutes = padZero(now.getMinutes());
-    timeEl.textContent = hours + ':' + minutes;
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    timeEl.textContent = `${hours}:${minutes}`;
 
-    var day = padZero(now.getDate());
-    var month = padZero(now.getMonth() + 1);
-    var year = now.getFullYear();
-    dateEl.textContent = day + '/' + month + '/' + year;
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    dateEl.textContent = `${day}/${month}/${year}`;
 }
 setInterval(updateClock, 1000);
 updateClock();
 
 // ======== BACKGROUND ROTATIVO ========
-var currentBgIndex = 0;
-var isBg1Active = true;
+let currentBgIndex = 0;
+let isBg1Active = true;
 
 // Preload da primeira imagem
-bg1.style.backgroundImage = "url('" + backgroundImages[currentBgIndex] + "')";
+bg1.style.backgroundImage = `url('${backgroundImages[currentBgIndex]}')`;
 
 function changeBackground() {
     currentBgIndex = (currentBgIndex + 1) % backgroundImages.length;
-    var nextImageUrl = backgroundImages[currentBgIndex];
+    const nextImageUrl = backgroundImages[currentBgIndex];
 
-    var img = new Image();
+    const img = new Image();
     img.src = nextImageUrl;
 
-    img.onload = function() {
-        var nextImage = "url('" + nextImageUrl + "')";
+    img.onload = () => {
+        const nextImage = `url('${nextImageUrl}')`;
         if (isBg1Active) {
             bg2.style.backgroundImage = nextImage;
             bg2.style.opacity = 1;
@@ -88,278 +82,283 @@ function changeBackground() {
 }
 setInterval(changeBackground, CHANGE_BG_INTERVAL);
 
+// Calendário Removido Temporariamente 
+
 // ======== PREVISÃO DO TEMPO ========
-function fetchWeather() {
-    var url = "https://api.open-meteo.com/v1/forecast?latitude=" + LATITUDE + "&longitude=" + LONGITUDE + "&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8";
+async function fetchWeather() {
+    try {
+        const url = `http://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8`;
 
-    fetch(url)
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            document.getElementById('current-temp').textContent = Math.round(data.current.temperature_2m) + "°";
-            if (data.daily) {
-                document.getElementById('current-max').textContent = Math.round(data.daily.temperature_2m_max[0]) + "°";
-                document.getElementById('current-min').textContent = Math.round(data.daily.temperature_2m_min[0]) + "°";
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // Dados atuais
+        document.getElementById('current-temp').textContent = `${Math.round(data.current.temperature_2m)}°`;
+        if (data.daily) {
+            document.getElementById('current-max').textContent = `${Math.round(data.daily.temperature_2m_max[0])}°`;
+            document.getElementById('current-min').textContent = `${Math.round(data.daily.temperature_2m_min[0])}°`;
+        }
+        document.getElementById('current-humidity').textContent = `${data.current.relative_humidity_2m}%`;
+        document.getElementById('current-wind').textContent = `${Math.round(data.current.wind_speed_10m)}`;
+        // Chance de chuva atual (vamos pegar da primeira hora próxima no forecast horário)
+
+        const currentHour = new Date().getHours();
+        let currentPrecipProb = 0;
+
+        // Horas futuras
+        const hourlyContainer = document.getElementById('hourly-forecast');
+        let hourlyHtml = '';
+
+        // A API retorna as 24h do dia em diante. Precisamos achar a hora atual.
+        const times = data.hourly.time;
+        const nowIso = new Date().toISOString().substring(0, 14) + "00"; // aproximando a hora
+        let startIndex = 0;
+
+        for (let i = 0; i < times.length; i++) {
+            const tDate = new Date(times[i]);
+            if (tDate.getHours() >= currentHour && tDate.getDate() === new Date().getDate()) {
+                startIndex = i;
+                break;
             }
-            document.getElementById('current-humidity').textContent = data.current.relative_humidity_2m + "%";
-            document.getElementById('current-wind').textContent = Math.round(data.current.wind_speed_10m);
+        }
 
-            var currentHour = new Date().getHours();
-            var currentPrecipProb = 0;
+        currentPrecipProb = data.hourly.precipitation_probability[startIndex] || 0;
+        document.getElementById('current-rain').textContent = `${currentPrecipProb}%`;
 
-            var hourlyContainer = document.getElementById('hourly-forecast');
-            var hourlyHtml = '';
+        // Proximas 9 horas
+        for (let i = startIndex; i < startIndex + 9; i++) {
+            if (i >= times.length) break;
+            const hourDate = new Date(times[i]);
+            const h = String(hourDate.getHours()).padStart(2, '0') + ':00';
+            const temp = Math.round(data.hourly.temperature_2m[i]);
+            const rainProb = data.hourly.precipitation_probability[i];
+            const windSpeed = Math.round(data.hourly.wind_speed_10m[i]);
 
-            var times = data.hourly.time;
-            var startIndex = 0;
+            hourlyHtml += `
+                <div class="hourly-item">
+                    <span class="hourly-time">${h}</span>
+                    <span class="hourly-temp">${temp}°</span>
+                    <span style="font-size: 0.7rem; color: var(--text-secondary);"><i class="ph ph-drop"></i> ${rainProb}%</span>
+                    <span style="font-size: 0.7rem; color: var(--text-secondary);"><i class="ph ph-wind"></i> ${windSpeed} <span style="font-size: 0.5rem;">km</span></span>
+                </div>
+            `;
+        }
 
-            for (var i = 0; i < times.length; i++) {
-                var tDate = new Date(times[i]);
-                if (tDate.getHours() >= currentHour && tDate.getDate() === new Date().getDate()) {
-                    startIndex = i;
-                    break;
-                }
+        hourlyContainer.innerHTML = hourlyHtml;
+
+        // Proximos Dias (Daily Forecast)
+        const dailyContainer = document.getElementById('daily-forecast');
+        if (dailyContainer && data.daily) {
+            let dailyHtml = '';
+            const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+            // Começa de i = 1 para pegar o dia seguinte em diante. Pega próximos 7 dias.
+            for (let i = 1; i <= 7; i++) {
+                if (i >= data.daily.time.length) break;
+
+                // Tratar timezone para pegar dia da semana correto local
+                const [year, month, day] = data.daily.time[i].split('-');
+                const dayDate = new Date(year, month - 1, day);
+                const dayName = dayNames[dayDate.getDay()];
+                const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                const monthName = monthNames[dayDate.getMonth()];
+
+                const tMax = Math.round(data.daily.temperature_2m_max[i]);
+                const tMin = Math.round(data.daily.temperature_2m_min[i]);
+                const pProb = data.daily.precipitation_probability_max[i];
+
+                dailyHtml += `
+                    <div class="daily-item">
+                        <span class="daily-day">${dayName}, ${dayDate.getDate()} de ${monthName}</span>
+                        <span class="daily-rain"><i class="ph ph-drop"></i> ${pProb}%</span>
+                        <div class="daily-temps">
+                            <span class="temp-max">${tMax}°</span>
+                            <span style="color: var(--text-primary); font-weight: 400;">/</span>
+                            <span class="temp-min">${tMin}°</span>
+                        </div>
+                    </div>
+                `;
             }
+            dailyContainer.innerHTML = dailyHtml;
+        }
 
-            currentPrecipProb = data.hourly.precipitation_probability[startIndex] || 0;
-            document.getElementById('current-rain').textContent = currentPrecipProb + "%";
-
-            for (var j = startIndex; j < startIndex + 9; j++) {
-                if (j >= times.length) break;
-                var hourDate = new Date(times[j]);
-                var h = padZero(hourDate.getHours()) + ':00';
-                var temp = Math.round(data.hourly.temperature_2m[j]);
-                var rainProb = data.hourly.precipitation_probability[j];
-                var windSpeed = Math.round(data.hourly.wind_speed_10m[j]);
-
-                hourlyHtml += '<div class="hourly-item">' +
-                    '<span class="hourly-time">' + h + '</span>' +
-                    '<span class="hourly-temp">' + temp + '°</span>' +
-                    '<span style="font-size: 0.7rem; color: #e2e8f0;"><i class="ph ph-drop"></i> ' + rainProb + '%</span>' +
-                    '<span style="font-size: 0.7rem; color: #e2e8f0;"><i class="ph ph-wind"></i> ' + windSpeed + ' <span style="font-size: 0.5rem;">km</span></span>' +
-                '</div>';
-            }
-
-            hourlyContainer.innerHTML = hourlyHtml;
-
-            var dailyContainer = document.getElementById('daily-forecast');
-            if (dailyContainer && data.daily) {
-                var dailyHtml = '';
-                var dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-
-                for (var k = 1; k <= 7; k++) {
-                    if (k >= data.daily.time.length) break;
-
-                    var parts = data.daily.time[k].split('-');
-                    var dayDate = new Date(parts[0], parts[1] - 1, parts[2]);
-                    var dayName = dayNames[dayDate.getDay()];
-                    var monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-                    var monthName = monthNames[dayDate.getMonth()];
-
-                    var tMax = Math.round(data.daily.temperature_2m_max[k]);
-                    var tMin = Math.round(data.daily.temperature_2m_min[k]);
-                    var pProb = data.daily.precipitation_probability_max[k];
-
-                    dailyHtml += '<div class="daily-item">' +
-                        '<span class="daily-day">' + dayName + ', ' + dayDate.getDate() + ' de ' + monthName + '</span>' +
-                        '<span class="daily-rain"><i class="ph ph-drop"></i> ' + pProb + '%</span>' +
-                        '<div class="daily-temps">' +
-                            '<span class="temp-max">' + tMax + '°</span>' +
-                            '<span style="color: #ffffff; font-weight: 400;">/</span>' +
-                            '<span class="temp-min">' + tMin + '°</span>' +
-                        '</div>' +
-                    '</div>';
-                }
-                dailyContainer.innerHTML = dailyHtml;
-            }
-
-        })
-        .catch(function(error) {
-            console.error("Erro ao buscar clima: ", error);
-            document.getElementById('current-temp').textContent = '--°';
-            var hourlyContainer = document.getElementById('hourly-forecast');
-            if (hourlyContainer) {
-                hourlyContainer.innerHTML = '<div style="color: red; font-size: 0.8rem; padding: 10px;">Erro: ' + error.message + '</div>';
-            }
-        });
+    } catch (error) {
+        console.error("Erro ao buscar clima: ", error);
+        document.getElementById('current-temp').textContent = '--°';
+        const hourlyContainer = document.getElementById('hourly-forecast');
+        if (hourlyContainer) {
+            hourlyContainer.innerHTML = `<div style="color: red; font-size: 0.8rem; padding: 10px;">Erro: ${error.message}. Possível bloqueio temporário (Rate Limit) da API. Aguarde 1 minuto e recarregue.</div>`;
+        }
+    }
 }
 fetchWeather();
 setInterval(fetchWeather, UPDATE_WEATHER_INTERVAL);
 
 // Lógica do Slider do Clima
-var isWeatherSlideDaily = false;
+let isWeatherSlideDaily = false;
 function toggleWeatherSlider() {
-    var slider = document.getElementById('weather-slider');
+    const slider = document.getElementById('weather-slider');
     if (!slider) return;
 
     isWeatherSlideDaily = !isWeatherSlideDaily;
     if (isWeatherSlideDaily) {
         slider.style.transform = 'translateX(-50%)';
-        slider.style.webkitTransform = 'translateX(-50%)';
     } else {
         slider.style.transform = 'translateX(0)';
-        slider.style.webkitTransform = 'translateX(0)';
     }
 }
 
 // ======== NOTÍCIAS ========
-var newsList = document.getElementById('news-list');
-var RSS_FEEDS = [
+const newsList = document.getElementById('news-list');
+const RSS_FEEDS = [
     { url: 'https://iclnoticias.com.br/feed/', tag: 'ICL', class: 'tag-icl', source: 'ICL Notícias' },
     { url: 'https://www.gazetaesportiva.com/feed/', tag: 'Esportes', class: 'tag-esportes', source: 'Gazeta Esportiva' },
     { url: 'https://feeds.folha.uol.com.br/emcimadahora/rss091.xml', tag: 'Folha', class: 'tag-folha', source: 'Folha de S.Paulo' },
     { url: 'https://feeds.bbci.co.uk/portuguese/rss.xml', tag: 'BBC', class: 'tag-bbc', source: 'BBC Brasil' }
 ];
 
-function fetchAllNews() {
-    newsList.innerHTML = '<div style="text-align: center; color: #e2e8f0;">Carregando notícias...</div>';
-    
-    var allItems = [];
-    var requestsCompleted = 0;
+// ======= NOTÍCIAS =======
 
-    for (var i = 0; i < RSS_FEEDS.length; i++) {
-        (function(feed) {
-            var url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feed.url);
-            fetch(url)
-                .then(function(response) { return response.json(); })
-                .then(function(data) {
-                    if (data.status === 'ok') {
-                        var items = data.items.slice(0, 10);
-                        for (var j = 0; j < items.length; j++) {
-                            var itemCopy = {};
-                            for (var key in items[j]) { itemCopy[key] = items[j][key]; }
-                            itemCopy.tag = feed.tag;
-                            itemCopy.tagClass = feed.class;
-                            itemCopy.source = feed.source;
-                            allItems.push(itemCopy);
-                        }
-                    }
-                })
-                .catch(function(error) {
-                    console.error("Erro ao buscar feed " + feed.tag, error);
-                })
-                .finally(function() {
-                    requestsCompleted++;
-                    if (requestsCompleted === RSS_FEEDS.length) {
-                        shuffleArray(allItems);
-                        newsList.innerHTML = '';
-                        
-                        for (var k = 0; k < allItems.length; k++) {
-                            var item = allItems[k];
-                            var dateStr = '';
-                            if (item.pubDate) {
-                                try {
-                                    var d = new Date(item.pubDate);
-                                    if (!isNaN(d.getTime())) {
-                                        var day = padZero(d.getDate());
-                                        var month = padZero(d.getMonth() + 1);
-                                        var year = d.getFullYear();
-                                        dateStr = ' • ' + day + '/' + month + '/' + year;
-                                    }
-                                } catch (e) { }
-                            }
+async function fetchAllNews() {
+    newsList.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">Carregando notícias...</div>';
+    try {
+        let allItems = [];
 
-                            var el = document.createElement('div');
-                            el.className = 'news-item';
-                            el.innerHTML = '<div class="news-header">' +
-                                '<span class="news-tag ' + item.tagClass + '">' + item.tag + '</span>' +
-                                '<span class="news-source">Fonte: ' + item.source + dateStr + '</span>' +
-                            '</div>' +
-                            '<div class="news-title">' + item.title + '</div>';
-                            newsList.appendChild(el);
-                        }
-                    }
+        for (const feed of RSS_FEEDS) {
+            const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.status === 'ok') {
+                const items = data.items.slice(0, 10); // 10 de cada
+                items.forEach(item => {
+                    allItems.push(Object.assign({}, item, {
+                        tag: feed.tag,
+                        tagClass: feed.class,
+                        source: feed.source
+                    }));
                 });
-        })(RSS_FEEDS[i]);
+            }
+        }
+
+        shuffleArray(allItems);
+        newsList.innerHTML = '';
+
+        allItems.forEach(item => {
+            let dateStr = '';
+            if (item.pubDate) {
+                try {
+                    const d = new Date(item.pubDate);
+                    if (!isNaN(d.getTime())) {
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const year = d.getFullYear();
+                        dateStr = ` • ${day}/${month}/${year}`;
+                    }
+                } catch (e) { }
+            }
+
+            const el = document.createElement('div');
+            el.className = 'news-item';
+            el.innerHTML = `
+                <div class="news-header">
+                    <span class="news-tag ${item.tagClass}">${item.tag}</span>
+                    <span class="news-source">Fonte: ${item.source}${dateStr}</span>
+                </div>
+                <div class="news-title">${item.title}</div>
+            `;
+            newsList.appendChild(el);
+        });
+
+    } catch (error) {
+        console.error("Erro ao buscar notícias: ", error);
+        newsList.innerHTML = '<div style="text-align: center; color: red;">Erro ao carregar notícias.</div>';
     }
 }
+
 fetchAllNews();
 setInterval(fetchAllNews, 30 * 60 * 1000);
 
-var scrollPos = 0;
+// Auto-scroll das notícias
+let scrollPos = 0;
 function autoScrollNews() {
-    var container = document.getElementById('news-list-container');
+    const container = document.getElementById('news-list-container');
     if (newsList.scrollHeight > container.clientHeight) {
-        scrollPos += 0.2;
+        scrollPos += 0.2; // velocidade do scroll reduzida pela metade
         if (scrollPos >= newsList.scrollHeight - container.clientHeight) {
-            scrollPos = 0;
+            scrollPos = 0; // volta pro topo
         }
-        newsList.style.transform = "translateY(-" + scrollPos + "px)";
-        newsList.style.webkitTransform = "translateY(-" + scrollPos + "px)";
+        newsList.style.transform = `translateY(-${scrollPos}px)`;
     }
-    window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || function(cb){ setTimeout(cb, 1000/60); };
     requestAnimationFrame(autoScrollNews);
 }
 autoScrollNews();
 
 // ======== CALENDÁRIO MENSAL ========
-var calendarGrid = document.getElementById('calendar-grid');
-var calendarMonthYear = document.getElementById('calendar-month-year');
-var calendarLegend = document.getElementById('calendar-legend');
+const calendarGrid = document.getElementById('calendar-grid');
+const calendarMonthYear = document.getElementById('calendar-month-year');
+const calendarLegend = document.getElementById('calendar-legend');
 
-function renderCalendar() {
-    var now = new Date();
-    var year = now.getFullYear();
-    var month = now.getMonth();
+async function renderCalendar() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
 
-    var monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-    calendarMonthYear.innerHTML = '<i class="ph ph-calendar"></i> ' + monthNames[month] + ' ' + year;
+    const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+    calendarMonthYear.innerHTML = `<i class="ph ph-calendar"></i> ${monthNames[month]} ${year}`;
 
-    var url = "https://brasilapi.com.br/api/feriados/v1/" + year;
-    fetch(url)
-        .then(function(response) { return response.json(); })
-        .then(function(holidays) {
-            buildCalendarGrid(year, month, holidays, now);
-        })
-        .catch(function(e) {
-            console.error(e);
-            buildCalendarGrid(year, month, [], now);
-        });
-}
+    // Buscar feriados
+    let holidays = [];
+    try {
+        const url = `https://brasilapi.com.br/api/feriados/v1/${year}`;
+        const response = await fetch(url);
+        holidays = await response.json();
+    } catch (e) {
+        console.error(e);
+    }
 
-function buildCalendarGrid(year, month, holidays, now) {
-    var firstDayIndex = new Date(year, month, 1).getDay();
-    var lastDay = new Date(year, month + 1, 0).getDate();
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const lastDay = new Date(year, month + 1, 0).getDate();
 
     calendarGrid.innerHTML = '';
     if (calendarLegend) calendarLegend.innerHTML = '';
 
-    for (var i = 0; i < firstDayIndex; i++) {
-        var emptyDiv = document.createElement('div');
+    // Preencher dias vazios antes do dia 1
+    for (let i = 0; i < firstDayIndex; i++) {
+        const emptyDiv = document.createElement('div');
         emptyDiv.className = 'calendar-day empty';
         calendarGrid.appendChild(emptyDiv);
     }
 
-    for (var j = 1; j <= lastDay; j++) {
-        var dayDiv = document.createElement('div');
+    // Preencher os dias do mês
+    for (let i = 1; i <= lastDay; i++) {
+        const dayDiv = document.createElement('div');
         dayDiv.className = 'calendar-day';
-        dayDiv.textContent = j;
+        dayDiv.textContent = i;
 
-        var dayOfWeek = new Date(year, month, j).getDay();
+        // Verifica se é final de semana (0 = domingo, 6 = sábado)
+        const dayOfWeek = new Date(year, month, i).getDay();
         if (dayOfWeek === 0 || dayOfWeek === 6) {
             dayDiv.classList.add('weekend');
         }
 
-        if (year === now.getFullYear() && month === now.getMonth() && j === now.getDate()) {
+        // Verifica se é hoje
+        if (year === now.getFullYear() && month === now.getMonth() && i === now.getDate()) {
             dayDiv.classList.add('today');
         }
 
-        var dateStr = year + '-' + padZero(month + 1) + '-' + padZero(j);
-        
-        var holiday = null;
-        for (var h = 0; h < holidays.length; h++) {
-            if (holidays[h].date === dateStr) {
-                holiday = holidays[h];
-                break;
-            }
-        }
+        // Verifica se é feriado
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        const holiday = holidays.find(h => h.date === dateStr);
 
         if (holiday) {
             dayDiv.classList.add('holiday');
             dayDiv.title = holiday.name;
 
+            // Adiciona na legenda se o feriado for neste mês
             if (calendarLegend) {
-                var legendItem = document.createElement('div');
-                legendItem.innerHTML = '<strong>' + padZero(j) + '/' + padZero(month + 1) + '</strong> - ' + holiday.name;
+                const legendItem = document.createElement('div');
+                legendItem.innerHTML = `<strong>${String(i).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}</strong> - ${holiday.name}`;
                 calendarLegend.appendChild(legendItem);
             }
         }
@@ -367,21 +366,25 @@ function buildCalendarGrid(year, month, holidays, now) {
         calendarGrid.appendChild(dayDiv);
     }
 }
+
 renderCalendar();
-setInterval(renderCalendar, 24 * 60 * 60 * 1000);
+setInterval(renderCalendar, 24 * 60 * 60 * 1000); // Atualiza diariamente
 
 // ======== TIMER ========
-var timerSeconds = 0;
-var timerInterval = null;
-var timerDisplay = document.getElementById('timer-display');
-var timerToggleBtn = document.getElementById('timer-toggle-btn');
+let timerSeconds = 0;
+let timerInterval = null;
+const timerDisplay = document.getElementById('timer-display');
+const timerToggleBtn = document.getElementById('timer-toggle-btn');
 
 function updateTimerDisplay() {
-    var h = Math.floor(timerSeconds / 3600);
-    var m = Math.floor((timerSeconds % 3600) / 60);
-    var s = timerSeconds % 60;
+    const h = Math.floor(timerSeconds / 3600);
+    const m = Math.floor((timerSeconds % 3600) / 60);
+    const s = timerSeconds % 60;
 
-    timerDisplay.textContent = padZero(h) + ':' + padZero(m) + ':' + padZero(s);
+    timerDisplay.textContent =
+        String(h).padStart(2, '0') + ':' +
+        String(m).padStart(2, '0') + ':' +
+        String(s).padStart(2, '0');
 }
 
 function adjustTimer(amount, type) {
@@ -401,12 +404,14 @@ function adjustTimer(amount, type) {
 function toggleTimer() {
     stopAlarm();
     if (timerInterval) {
+        // Pausar
         clearInterval(timerInterval);
         timerInterval = null;
         timerToggleBtn.innerHTML = '<i class="ph ph-play"></i> Iniciar';
     } else {
+        // Iniciar
         if (timerSeconds > 0) {
-            timerInterval = setInterval(function() {
+            timerInterval = setInterval(() => {
                 timerSeconds--;
                 updateTimerDisplay();
                 if (timerSeconds <= 0) {
@@ -432,7 +437,7 @@ function resetTimer() {
     timerToggleBtn.innerHTML = '<i class="ph ph-play"></i> Iniciar';
 }
 
-var alarmInterval = null;
+let alarmInterval = null;
 
 function stopAlarm() {
     if (alarmInterval) {
@@ -449,11 +454,9 @@ function playAlarm() {
 
 function triggerBeep() {
     try {
-        var AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return;
-        var audioCtx = new AudioContextClass();
-        var oscillator = audioCtx.createOscillator();
-        var gainNode = audioCtx.createGain();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
 
         oscillator.type = 'sine';
         oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
@@ -465,7 +468,7 @@ function triggerBeep() {
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
 
-        oscillator.start(0);
+        oscillator.start();
         oscillator.stop(audioCtx.currentTime + 1.5);
     } catch (e) {
         console.error("Áudio não suportado", e);
@@ -473,13 +476,14 @@ function triggerBeep() {
 }
 
 // ======== FULLSCREEN ========
+// Faz o navegador entrar em tela cheia e sumir com a barra de status ao tocar na tela
 document.body.addEventListener('click', function () {
     var elem = document.documentElement;
     if (elem.requestFullscreen) {
         elem.requestFullscreen();
-    } else if (elem.mozRequestFullScreen) {
+    } else if (elem.mozRequestFullScreen) { // Específico para o Firefox antigo
         elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) {
+    } else if (elem.webkitRequestFullscreen) { // Específico para navegadores nativos antigos
         elem.webkitRequestFullscreen();
     }
 });
