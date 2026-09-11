@@ -22,8 +22,8 @@ body {
     font-family: 'Outfit', sans-serif;
     color: var(--text-primary);
     width: 1024px;
-    height: 576px;
-    /* 600px - 24px da barra de status do Android */
+    height: 600px;
+    /* Tela cheia (sem barra de status) */
     overflow: hidden;
     display: flex;
     justify-content: center;

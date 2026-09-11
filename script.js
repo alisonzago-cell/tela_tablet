@@ -87,7 +87,8 @@ setInterval(changeBackground, CHANGE_BG_INTERVAL);
 // ======== PREVISÃO DO TEMPO ========
 async function fetchWeather() {
     try {
-        const url = `http://api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8`;
+        const apiProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+        const url = `${apiProtocol}//api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8`;
 
         const response = await fetch(url);
         const data = await response.json();
@@ -184,10 +185,58 @@ async function fetchWeather() {
 
     } catch (error) {
         console.error("Erro ao buscar clima: ", error);
-        document.getElementById('current-temp').textContent = '--°';
+
+        // Mudar o título para indicar erro
+        const locTitle = document.getElementById('location-title');
+        if (locTitle) {
+            locTitle.innerHTML = '<i class="ph ph-warning-circle"></i> Erro ao conectar ao Meteo';
+            locTitle.style.color = '#ef4444';
+            locTitle.style.opacity = '0.8';
+        }
+
+        // Injetar dados fictícios
+        document.getElementById('current-temp').textContent = '24°';
+        document.getElementById('current-max').textContent = '28°';
+        document.getElementById('current-min').textContent = '18°';
+        document.getElementById('current-humidity').textContent = '50%';
+        document.getElementById('current-wind').textContent = '10';
+        document.getElementById('current-rain').textContent = '15%';
+
+        // Opacidade em todo o bloco de detalhe atual
+        const currentBlock = document.querySelector('.weather-current');
+        if (currentBlock) currentBlock.style.opacity = '0.5';
+
         const hourlyContainer = document.getElementById('hourly-forecast');
         if (hourlyContainer) {
-            hourlyContainer.innerHTML = `<div style="color: red; font-size: 0.8rem; padding: 10px;">Erro: ${error.message}. Possível bloqueio temporário (Rate Limit) da API. Aguarde 1 minuto e recarregue.</div>`;
+            let fakeHourly = '';
+            for (let i = 0; i < 9; i++) {
+                fakeHourly += `
+                <div class="hourly-item" style="opacity: 0.5;">
+                    <span class="hourly-time">12:00</span>
+                    <span class="hourly-temp">24°</span>
+                    <span style="font-size: 0.7rem; color: var(--text-secondary);"><i class="ph ph-drop"></i> 15%</span>
+                    <span style="font-size: 0.7rem; color: var(--text-secondary);"><i class="ph ph-wind"></i> 10 <span style="font-size: 0.5rem;">km</span></span>
+                </div>`;
+            }
+            hourlyContainer.innerHTML = fakeHourly;
+        }
+
+        const dailyContainer = document.getElementById('daily-forecast');
+        if (dailyContainer) {
+            let fakeDaily = '';
+            for (let i = 1; i <= 7; i++) {
+                fakeDaily += `
+                <div class="daily-item" style="opacity: 0.5;">
+                    <span class="daily-day">Segunda, 01 de Janeiro</span>
+                    <span class="daily-rain"><i class="ph ph-drop"></i> 15%</span>
+                    <div class="daily-temps">
+                        <span class="temp-max">28°</span>
+                        <span style="color: var(--text-primary); font-weight: 400;">/</span>
+                        <span class="temp-min">18°</span>
+                    </div>
+                </div>`;
+            }
+            dailyContainer.innerHTML = fakeDaily;
         }
     }
 }
@@ -272,7 +321,21 @@ async function fetchAllNews() {
 
     } catch (error) {
         console.error("Erro ao buscar notícias: ", error);
-        newsList.innerHTML = '<div style="text-align: center; color: red;">Erro ao carregar notícias.</div>';
+        newsList.innerHTML = ''; // Limpar aviso
+
+        for (let i = 0; i < 6; i++) {
+            const el = document.createElement('div');
+            el.className = 'news-item';
+            el.style.opacity = '0.5';
+            el.innerHTML = `
+                <div class="news-header">
+                    <span class="news-tag" style="background: #ef4444; color: white;"><i class="ph ph-warning-circle"></i> OFF</span>
+                    <span class="news-source" style="color: #ef4444;">Erro na Conexão</span>
+                </div>
+                <div class="news-title">Notícia Fictícia para Teste de Diagramação - Manchete de Exemplo que Ocupa Mais de Uma Linha para Testar o Espaçamento e a Rolagem Automática ${i + 1}</div>
+            `;
+            newsList.appendChild(el);
+        }
     }
 }
 
