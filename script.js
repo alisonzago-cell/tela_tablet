@@ -39,6 +39,8 @@ const dateEl = document.getElementById('date');
 // ======== RELÓGIO & DATA ========
 function updateClock() {
     const now = new Date();
+    // Ajuste de fuso horário (-1h) para tablets desatualizados
+    now.setHours(now.getHours() - 1);
 
     const hours = String(now.getHours()).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
@@ -47,7 +49,9 @@ function updateClock() {
     const day = String(now.getDate()).padStart(2, '0');
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const year = now.getFullYear();
-    dateEl.textContent = `${day}/${month}/${year}`;
+    const dayNamesList = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+    const dayOfWeek = dayNamesList[now.getDay()];
+    dateEl.textContent = `${dayOfWeek}, ${day}/${month}/${year}`;
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -562,16 +566,22 @@ function triggerBeep() {
 
 // ======== FULLSCREEN ========
 // Faz o navegador entrar em tela cheia e sumir com a barra de status ao tocar na tela
-document.body.addEventListener('click', function () {
+function toggleFullscreen() {
     var elem = document.documentElement;
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-    } else if (elem.mozRequestFullScreen) { // Específico para o Firefox antigo
-        elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) { // Específico para navegadores nativos antigos
-        elem.webkitRequestFullscreen();
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { // Específico para navegadores nativos antigos
+            elem.webkitRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
     }
-});
+}
 
 // ======== SCRIPT DE DEBUG COMPARATIVO ========
 async function fetchDebugWeather() {
