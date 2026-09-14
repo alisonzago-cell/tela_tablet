@@ -88,7 +88,7 @@ setInterval(changeBackground, CHANGE_BG_INTERVAL);
 async function fetchWeather() {
     try {
         const apiProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-        const url = `${apiProtocol}//api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8`;
+        const url = `${apiProtocol}//api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8&models=best_match`;
 
         const response = await fetch(url);
         const data = await response.json();
@@ -126,8 +126,8 @@ async function fetchWeather() {
         currentPrecipProb = data.hourly.precipitation_probability[startIndex] || 0;
         document.getElementById('current-rain').textContent = `${currentPrecipProb}%`;
 
-        // Proximas 9 horas
-        for (let i = startIndex; i < startIndex + 9; i++) {
+        // Proximas 8 horas
+        for (let i = startIndex; i < startIndex + 8; i++) {
             if (i >= times.length) break;
             const hourDate = new Date(times[i]);
             const h = String(hourDate.getHours()).padStart(2, '0') + ':00';
@@ -161,8 +161,8 @@ async function fetchWeather() {
                 const [year, month, day] = data.daily.time[i].split('-');
                 const dayDate = new Date(year, month - 1, day);
                 const dayName = dayNames[dayDate.getDay()];
-                const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-                const monthName = monthNames[dayDate.getMonth()];
+                const dayPadded = String(dayDate.getDate()).padStart(2, '0');
+                const monthPadded = String(dayDate.getMonth() + 1).padStart(2, '0');
 
                 const tMax = Math.round(data.daily.temperature_2m_max[i]);
                 const tMin = Math.round(data.daily.temperature_2m_min[i]);
@@ -170,7 +170,7 @@ async function fetchWeather() {
 
                 dailyHtml += `
                     <div class="daily-item">
-                        <span class="daily-day">${dayName}, ${dayDate.getDate()} de ${monthName}</span>
+                        <span class="daily-day">${dayName}, ${dayPadded}/${monthPadded}</span>
                         <span class="daily-rain"><i class="ph ph-drop"></i> ${pProb}%</span>
                         <div class="daily-temps">
                             <span class="temp-max">${tMax}°</span>
@@ -209,7 +209,7 @@ async function fetchWeather() {
         const hourlyContainer = document.getElementById('hourly-forecast');
         if (hourlyContainer) {
             let fakeHourly = '';
-            for (let i = 0; i < 9; i++) {
+            for (let i = 0; i < 8; i++) {
                 fakeHourly += `
                 <div class="hourly-item" style="opacity: 0.5;">
                     <span class="hourly-time">12:00</span>
@@ -227,7 +227,7 @@ async function fetchWeather() {
             for (let i = 1; i <= 7; i++) {
                 fakeDaily += `
                 <div class="daily-item" style="opacity: 0.5;">
-                    <span class="daily-day">Segunda, 01 de Janeiro</span>
+                    <span class="daily-day">Segunda, 01/01</span>
                     <span class="daily-rain"><i class="ph ph-drop"></i> 15%</span>
                     <div class="daily-temps">
                         <span class="temp-max">28°</span>
@@ -359,8 +359,26 @@ autoScrollNews();
 
 // ======== CALENDÁRIO MENSAL ========
 const calendarGrid = document.getElementById('calendar-grid');
-const calendarMonthYear = document.getElementById('calendar-month-year');
 const calendarLegend = document.getElementById('calendar-legend');
+
+// Variável para armazenar o mês/ano gerado
+let currentCalendarTitleText = "Calendário";
+let isTimerSlideCalendar = true;
+
+function toggleCalendarTimerSlider() {
+    const slider = document.getElementById('calendar-timer-slider');
+    const title = document.getElementById('calendar-timer-title');
+    if (!slider || !title) return;
+
+    isTimerSlideCalendar = !isTimerSlideCalendar;
+    if (isTimerSlideCalendar) {
+        slider.style.transform = 'translateX(-50%)';
+        title.innerHTML = '<i class="ph ph-calendar"></i> ' + currentCalendarTitleText;
+    } else {
+        slider.style.transform = 'translateX(0)';
+        title.innerHTML = '<i class="ph ph-timer"></i> Timer';
+    }
+}
 
 async function renderCalendar() {
     const now = new Date();
@@ -368,7 +386,11 @@ async function renderCalendar() {
     const month = now.getMonth();
 
     const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-    calendarMonthYear.innerHTML = `<i class="ph ph-calendar"></i> ${monthNames[month]} ${year}`;
+    currentCalendarTitleText = `${monthNames[month]} ${year}`;
+    if (isTimerSlideCalendar) {
+        const title = document.getElementById('calendar-timer-title');
+        if (title) title.innerHTML = '<i class="ph ph-calendar"></i> ' + currentCalendarTitleText;
+    }
 
     // Buscar feriados
     let holidays = [];
@@ -550,3 +572,70 @@ document.body.addEventListener('click', function () {
         elem.webkitRequestFullscreen();
     }
 });
+
+// ======== SCRIPT DE DEBUG COMPARATIVO ========
+async function fetchDebugWeather() {
+    const tableBody = document.getElementById('debug-table-body');
+    if (!tableBody) return;
+
+    const apiProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+    const baseUrl = `${apiProtocol}//api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8`;
+
+    const models = [
+        { name: "Best Match", param: "best_match" },
+        { name: "Americano (GFS)", param: "gfs_seamless" },
+        { name: "Alemão (ICON)", param: "icon_seamless" }
+    ];
+
+    try {
+        const results = await Promise.all(models.map(async (m) => {
+            const res = await fetch(`${baseUrl}&models=${m.param}`);
+            const data = await res.json();
+            return { model: m.name, data: data };
+        }));
+
+        let html = '';
+        results.forEach(res => {
+            const d = res.data;
+            if (!d.current) {
+                html += `<tr><td style="padding: 5px;">${res.model}</td><td colspan="4" style="padding: 5px; color: red;">Erro/Sem dados</td></tr>`;
+                return;
+            }
+
+            const currTemp = Math.round(d.current.temperature_2m) + '°';
+            const currHum = d.current.relative_humidity_2m + '%';
+            const currRain = d.current.precipitation + 'mm';
+            const currWind = Math.round(d.current.wind_speed_10m) + 'km/h';
+
+            const todayMax = d.daily.temperature_2m_max[0] !== null ? Math.round(d.daily.temperature_2m_max[0]) + '°' : 'N/A';
+            const todayMin = d.daily.temperature_2m_min[0] !== null ? Math.round(d.daily.temperature_2m_min[0]) + '°' : 'N/A';
+
+            let next8h = '';
+            for (let i = 0; i < 8; i++) {
+                next8h += `${Math.round(d.hourly.temperature_2m[i])}° (${d.hourly.precipitation_probability[i] !== null ? d.hourly.precipitation_probability[i] : '?'}%) `;
+            }
+
+            let next7d = '';
+            for (let i = 1; i <= 7; i++) {
+                const max = d.daily.temperature_2m_max[i] !== null ? Math.round(d.daily.temperature_2m_max[i]) + '°' : 'N/A';
+                const min = d.daily.temperature_2m_min[i] !== null ? Math.round(d.daily.temperature_2m_min[i]) + '°' : 'N/A';
+                const rain = d.daily.precipitation_probability_max[i] !== null ? d.daily.precipitation_probability_max[i] + '%' : 'N/A';
+                next7d += `[D+${i}: ${max}/${min} ${rain}] `;
+            }
+
+            html += `
+                <tr style="border-bottom: 1px solid #444;">
+                    <td style="padding: 5px; font-weight: bold; color: #fbbf24;">${res.model}</td>
+                    <td style="padding: 5px;">${currTemp}, ${currHum}, ${currRain}, ${currWind}</td>
+                    <td style="padding: 5px;">${todayMax} / ${todayMin}</td>
+                    <td style="padding: 5px; font-size: 0.7rem;">${next8h}</td>
+                    <td style="padding: 5px; font-size: 0.7rem; line-height: 1.4;">${next7d}</td>
+                </tr>
+            `;
+        });
+        tableBody.innerHTML = html;
+    } catch (e) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="padding: 5px; color: red;">Erro ao buscar dados: ${e.message}</td></tr>`;
+    }
+}
+fetchDebugWeather();
