@@ -462,7 +462,13 @@ async function renderCalendar() {
         const holiday = holidays.find(h => h.date === dateStr);
 
         if (holiday) {
-            dayDiv.classList.add('holiday');
+            if (year === now.getFullYear() && month === now.getMonth() && i < now.getDate()) {
+                dayDiv.classList.add('holiday-past');
+            } else if (year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth())) {
+                dayDiv.classList.add('holiday-past');
+            } else {
+                dayDiv.classList.add('holiday');
+            }
             dayDiv.title = holiday.name;
 
             // Adiciona na legenda se o feriado for neste mês

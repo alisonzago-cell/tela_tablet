@@ -274,8 +274,8 @@ body {
     background: rgba(0, 0, 0, 0.2);
     padding: 5px 12px;
     border-radius: 8px;
-    font-size: .85rem;
-    margin-bottom: 2.5px;
+    font-size: .95rem;
+    margin-bottom: 4px;
 }
 
 .daily-day {
@@ -454,6 +454,14 @@ body {
     font-weight: 700;
     color: #fff;
     border: 1px solid rgba(16, 185, 129, 0.8);
+}
+
+.calendar-day.holiday-past {
+    background: rgba(100, 116, 110, 0.3);
+    /* verde quase cinza (desaturado) */
+    font-weight: 700;
+    color: #cbd5e1;
+    border: 1px solid rgba(100, 116, 110, 0.5);
 }
 
 .calendar-legend {
