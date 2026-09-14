@@ -54,7 +54,7 @@
                     </div>
                     <div class="weather-details">
                         <div
-                            style="font-size: 2.6rem; justify-content: center; margin-bottom: 12px; font-weight: 800; display: flex;">
+                            style="font-size: 2.6rem; justify-content: center; margin-bottom: 6px; font-weight: 800; display: flex;">
                             <span id="current-max" style="color: #ef4444;">--°</span>
                             <span style="color: var(--text-primary); font-weight: 400; margin: 0 4px;">/</span>
                             <span id="current-min" style="color: #60a5fa;">--°</span>
@@ -64,6 +64,7 @@
                         <div class="detail"><i class="ph ph-wind"></i> <span id="current-wind">--</span>&nbsp;km/h</div>
                         <div class="detail"><i class="ph ph-cloud-rain"></i> <span
                                 id="current-rain">--%</span>&nbsp;Chuva</div>
+                        <div class="detail"><i class="ph ph-leaf"></i> Ar:&nbsp;<span id="current-aqi">--</span></div>
                     </div>
                 </div>
                 <div class="weather-hourly" id="hourly-forecast">
@@ -155,17 +156,17 @@
 
             <section class="panel glass"
                 style="padding: 13px 15px; margin-bottom: 0px; display: flex; flex-direction: row; justify-content: space-between; gap: 8px;">
-                <button class="timer-btn" style="flex: 1; margin: 0; padding: 4px; font-size: 0.85rem;"
+                <button class="timer-btn" style="flex: 1; margin: 0; padding: 4px; font-size: 0.7rem;"
                     onclick="location.reload()">
-                    <i class="ph ph-arrows-clockwise" style="margin-right: 4px; font-size: 1.1rem;"></i> Refresh
+                    <i class="ph ph-arrows-clockwise" style="margin-right: 4px; font-size: 0.9rem;"></i> Refresh
                 </button>
-                <button class="timer-btn" style="flex: 1; margin: 0; padding: 4px; font-size: 0.85rem;"
+                <button class="timer-btn" style="flex: 1; margin: 0; padding: 4px; font-size: 0.7rem;"
                     onclick="toggleFullscreen()">
-                    <i class="ph ph-corners-out" style="margin-right: 4px; font-size: 1.1rem;"></i> FullScreen
+                    <i class="ph ph-corners-out" style="margin-right: 4px; font-size: 0.9rem;"></i> FullScreen
                 </button>
-                <button class="timer-btn" style="flex: 1; margin: 0; padding: 4px; font-size: 0.85rem;"
+                <button class="timer-btn" style="flex: 1; margin: 0; padding: 4px; font-size: 0.7rem;"
                     onclick="changeBackground()">
-                    <i class="ph ph-image" style="margin-right: 4px; font-size: 1.1rem;"></i> BG
+                    <i class="ph ph-image" style="margin-right: 4px; font-size: 0.9rem;"></i> BG
                 </button>
             </section>
         </div>

@@ -93,9 +93,30 @@ async function fetchWeather() {
     try {
         const apiProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
         const url = `${apiProtocol}//api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8&models=best_match`;
+        const aqiUrl = `${apiProtocol}//air-quality-api.open-meteo.com/v1/air-quality?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=us_aqi&timezone=America%2FSao_Paulo`;
 
-        const response = await fetch(url);
+        const [response, aqiResponse] = await Promise.all([fetch(url), fetch(aqiUrl)]);
         const data = await response.json();
+        const aqiData = await aqiResponse.json();
+
+        // Qualidade do Ar (US AQI)
+        if (aqiData && aqiData.current && aqiData.current.us_aqi !== undefined) {
+            const aqi = aqiData.current.us_aqi;
+            let aqiText = "Bom";
+            let aqiColor = "#4ade80"; // verde
+            if (aqi > 50) { aqiText = "Moderado"; aqiColor = "#facc15"; } // amarelo
+            if (aqi > 100) { aqiText = "Sensíveis"; aqiColor = "#fb923c"; } // laranja
+            if (aqi > 150) { aqiText = "Ruim"; aqiColor = "#ef4444"; } // vermelho
+            if (aqi > 200) { aqiText = "M. Ruim"; aqiColor = "#9333ea"; } // roxo
+            if (aqi > 300) { aqiText = "Péssimo"; aqiColor = "#7f1d1d"; } // vinho
+            
+            const aqiEl = document.getElementById('current-aqi');
+            if (aqiEl) {
+                aqiEl.textContent = aqiText;
+                aqiEl.style.color = aqiColor;
+                aqiEl.style.fontWeight = "600";
+            }
+        }
 
         // Dados atuais
         document.getElementById('current-temp').textContent = `${Math.round(data.current.temperature_2m)}°`;

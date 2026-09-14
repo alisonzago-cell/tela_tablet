@@ -223,7 +223,7 @@ body {
 }
 
 .weather-details .detail {
-    margin-bottom: 8px;
+    margin-bottom: 2px;
 }
 
 .weather-details .detail:last-child {
@@ -275,7 +275,7 @@ body {
     padding: 5px 12px;
     border-radius: 8px;
     font-size: .85rem;
-    margin-bottom: 1.25px;
+    margin-bottom: 2.5px;
 }
 
 .daily-day {
