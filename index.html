@@ -156,15 +156,15 @@
 
             <section class="panel glass"
                 style="padding: 13px 15px; margin-bottom: 0px; display: flex; flex-direction: row; justify-content: space-between; gap: 8px;">
-                <button class="timer-btn" style="flex: 1; margin: 0; padding: 4px; font-size: 0.7rem;"
+                <button class="timer-btn" style="flex: 4; margin: 0; padding: 4px; font-size: 0.7rem;"
                     onclick="location.reload()">
                     <i class="ph ph-arrows-clockwise" style="margin-right: 4px; font-size: 0.9rem;"></i> Refresh
                 </button>
-                <button class="timer-btn" style="flex: 1; margin: 0; padding: 4px; font-size: 0.7rem;"
+                <button class="timer-btn" style="flex: 5; margin: 0; padding: 4px; font-size: 0.7rem;"
                     onclick="toggleFullscreen()">
                     <i class="ph ph-corners-out" style="margin-right: 4px; font-size: 0.9rem;"></i> FullScreen
                 </button>
-                <button class="timer-btn" style="flex: 1; margin: 0; padding: 4px; font-size: 0.7rem;"
+                <button class="timer-btn" style="flex: 3; margin: 0; padding: 4px; font-size: 0.7rem;"
                     onclick="changeBackground()">
                     <i class="ph ph-image" style="margin-right: 4px; font-size: 0.9rem;"></i> BG
                 </button>
@@ -172,27 +172,7 @@
         </div>
     </main>
 
-    <!-- DEBUG TABLE -->
-    <div id="debug-table-container"
-        style="width: 1024px; margin: 20px auto; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 10px; color: #fff; font-size: 0.8rem; overflow-x: auto;">
-        <h3 style="margin-bottom: 10px; color: #fbbf24;">Comparativo de Modelos (Debug)</h3>
-        <table style="width: 100%; border-collapse: collapse; text-align: left;">
-            <thead>
-                <tr style="border-bottom: 1px solid #444;">
-                    <th style="padding: 5px;">Modelo</th>
-                    <th style="padding: 5px;">Atual</th>
-                    <th style="padding: 5px;">Hoje (Max/Min)</th>
-                    <th style="padding: 5px;">Próximas 8h</th>
-                    <th style="padding: 5px;">Próximos 7 Dias (Max/Min/Chuva)</th>
-                </tr>
-            </thead>
-            <tbody id="debug-table-body">
-                <tr>
-                    <td colspan="5" style="padding: 5px;">Carregando dados de debug...</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+
 
     <script src="script.js"></script>
 </body>
