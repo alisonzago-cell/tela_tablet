@@ -675,7 +675,7 @@ async function initBattery() {
                 if(!levelEl || !iconEl) return;
                 
                 const level = Math.round(battery.level * 100);
-                levelEl.textContent = level + '%';
+                levelEl.innerHTML = '&nbsp;' + level + '%';
                 
                 if (battery.charging) {
                     iconEl.className = 'ph ph-battery-charging';

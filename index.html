@@ -173,19 +173,23 @@
 
             <section class="panel glass"
                 style="padding: 13px 15px; margin-bottom: 0px; display: flex; flex-direction: row; justify-content: space-between;">
-                <button class="timer-btn" style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                <button class="timer-btn"
+                    style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
                     onclick="location.reload()" title="Refresh">
                     <i class="ph ph-arrows-clockwise" style="font-size: 1.4rem;"></i>
                 </button>
-                <button class="timer-btn" style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                <button class="timer-btn"
+                    style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
                     onclick="toggleFullscreen()" title="FullScreen">
                     <i class="ph ph-corners-out" style="font-size: 1.4rem;"></i>
                 </button>
-                <button class="timer-btn" style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                <button class="timer-btn"
+                    style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
                     onclick="changeBackground()" title="Background">
                     <i class="ph ph-image" style="font-size: 1.4rem;"></i>
                 </button>
-                <button class="timer-btn" style="flex: 1; margin: 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                <button class="timer-btn"
+                    style="flex: 1; margin: 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
                     onclick="toggleNightMode()" title="Sleep Mode">
                     <i class="ph ph-moon" style="font-size: 1.4rem;"></i>
                 </button>
@@ -224,7 +228,12 @@
     <div id="night-mode-overlay"></div>
 
     <script src="script.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY&callback=initMap"
+        async defer></script>
+
+    <!-- Console na tela para testes no Tablet -->
+    <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+    <script>var vConsole = new window.VConsole();</script>
 </body>
 
 </html>
