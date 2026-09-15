@@ -758,10 +758,14 @@ document.getElementById('news-modal').addEventListener('click', function(e) {
 
 // ======== API DO TRÂNSITO (GOOGLE MAPS) ========
 window.initMap = function() {
-    const origin = 'Rua Jaraguá, São Paulo, SP'; 
-    const destination = 'Rua Cenno Sbrigui, São Paulo, SP';
-    
-    const service = new google.maps.DistanceMatrixService();
+    try {
+        if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+            throw new Error("API do Google Maps não carregou corretamente neste navegador.");
+        }
+        const origin = 'Rua Jaraguá, São Paulo, SP'; 
+        const destination = 'Rua Cenno Sbrigui, São Paulo, SP';
+        
+        const service = new google.maps.DistanceMatrixService();
     
     function fetchTraffic() {
         service.getDistanceMatrix({
@@ -814,6 +818,16 @@ window.initMap = function() {
     
     fetchTraffic();
     setInterval(fetchTraffic, 15 * 60 * 1000); // Atualiza a cada 15 min
+    } catch (e) {
+        console.error("Trânsito Falhou:", e);
+        const statusEl = document.getElementById('traffic-status');
+        const timeEl = document.getElementById('traffic-time');
+        if (statusEl) {
+            statusEl.textContent = 'Erro: Navegador Incompatível (v70)';
+            statusEl.style.color = '#ef4444';
+        }
+        if (timeEl) timeEl.textContent = '--';
+    }
 }
 
 
