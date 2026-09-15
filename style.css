@@ -112,12 +112,106 @@ body {
 .panel-header h3,
 .weather-header h3 {
     font-size: 1.2rem;
-    font-weight: 600;
+    margin-right: 6px;
     color: var(--text-secondary);
-    display: flex;
+}
+
+/* Modal de Notícias */
+#news-modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
+    display: none;
     align-items: center;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    margin-bottom: 0;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#news-modal.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    width: 80%;
+    max-width: 700px;
+    max-height: 80%;
+    padding: 24px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.close-modal {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+#modal-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    padding-right: 24px;
+    color: #fff;
+}
+
+#modal-source {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+#modal-desc {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+}
+
+/* Ícone de Bateria */
+#battery-icon {
+    font-size: 1.1em;
+}
+
+/* Fundo Animado de Clima */
+.weather-bg-anim {
+    position: absolute;
+    font-size: 14rem;
+    color: rgba(255, 255, 255, 0.15);
+    z-index: 1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.weather-spin {
+    animation: spinWeather 20s linear infinite;
+}
+
+.weather-float {
+    animation: floatWeather 4s ease-in-out infinite;
+}
+
+@keyframes spinWeather {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes floatWeather {
+    0% { transform: translate(-50%, -50%); }
+    50% { transform: translate(-50%, -55%); }
+    100% { transform: translate(-50%, -50%); }
 }
 
 .panel-header h3 i,
@@ -144,6 +238,7 @@ body {
     margin-bottom: 5px;
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     letter-spacing: -2px;
+    opacity: 0.85; /* Proteção anti burn-in para números grandes */
 }
 
 .date-display {
@@ -175,8 +270,17 @@ body {
     flex: 1;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     background: rgba(0, 0, 0, 0.2);
-    padding: 0px 0px;
     border-radius: 12px;
+    margin-right: 12px;
+    padding: 0 10px;
+    color: var(--text-primary);
+    position: relative;
+    overflow: hidden;
+}
+
+.temp-main span {
+    z-index: 2;
+    opacity: 0.85; /* Proteção anti burn-in */
 }
 
 /* Temp Min Max */
@@ -490,6 +594,22 @@ body {
     align-items: center;
     justify-content: center;
     flex-grow: 1;
+}
+
+#night-mode-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+}
+#night-mode-overlay.active {
+    opacity: 1;
 }
 
 .timer-display {

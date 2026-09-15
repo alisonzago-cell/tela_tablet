@@ -28,8 +28,13 @@
 
         <!-- Linha 1, Col 2: Bloco de Notícias -->
         <section class="panel news-panel glass">
-            <div class="panel-header">
+            <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h3><i class="ph ph-newspaper"></i> Últimas Notícias</h3>
+                <div id="battery-status"
+                    style="font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;"
+                    title="Bateria">
+                    <i class="ph ph-battery-full" id="battery-icon"></i> <span id="battery-level">--%</span>
+                </div>
             </div>
             <div class="news-list-container" id="news-list-container">
                 <div class="news-list" id="news-list">
@@ -146,13 +151,19 @@
                                 <!-- Dias injetados via JS -->
                             </div>
                         </div>
-                        <div class="calendar-legend-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; height: 38px; overflow: hidden;">
-                            <div class="calendar-legend" id="calendar-legend" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+                        <div class="calendar-legend-container"
+                            style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; height: 38px; overflow: hidden;">
+                            <div class="calendar-legend" id="calendar-legend"
+                                style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
                                 <!-- Legenda dos feriados do mês -->
                             </div>
-                            <div class="calendar-legend-controls" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding-left: 8px;">
-                                <i class="ph ph-caret-up" style="cursor: pointer; font-size: 1.1rem; line-height: 1; margin-bottom: 2px;" onclick="changeLegendPage(-1)"></i>
-                                <i class="ph ph-caret-down" style="cursor: pointer; font-size: 1.1rem; line-height: 1;" onclick="changeLegendPage(1)"></i>
+                            <div class="calendar-legend-controls"
+                                style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding-left: 8px;">
+                                <i class="ph ph-caret-up"
+                                    style="cursor: pointer; font-size: 1.1rem; line-height: 1; margin-bottom: 2px;"
+                                    onclick="changeLegendPage(-1)"></i>
+                                <i class="ph ph-caret-down" style="cursor: pointer; font-size: 1.1rem; line-height: 1;"
+                                    onclick="changeLegendPage(1)"></i>
                             </div>
                         </div>
                     </div>
@@ -162,25 +173,58 @@
 
             <section class="panel glass"
                 style="padding: 13px 15px; margin-bottom: 0px; display: flex; flex-direction: row; justify-content: space-between;">
-                <button class="timer-btn" style="flex: 4; margin: 0 8px 0 0; padding: 4px; font-size: 0.7rem;"
-                    onclick="location.reload()">
-                    <i class="ph ph-arrows-clockwise" style="margin-right: 4px; font-size: 0.9rem;"></i> Refresh
+                <button class="timer-btn" style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                    onclick="location.reload()" title="Refresh">
+                    <i class="ph ph-arrows-clockwise" style="font-size: 1.4rem;"></i>
                 </button>
-                <button class="timer-btn" style="flex: 5; margin: 0 8px 0 0; padding: 4px; font-size: 0.7rem;"
-                    onclick="toggleFullscreen()">
-                    <i class="ph ph-corners-out" style="margin-right: 4px; font-size: 0.9rem;"></i> FullScreen
+                <button class="timer-btn" style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                    onclick="toggleFullscreen()" title="FullScreen">
+                    <i class="ph ph-corners-out" style="font-size: 1.4rem;"></i>
                 </button>
-                <button class="timer-btn" style="flex: 3; margin: 0; padding: 4px; font-size: 0.7rem;"
-                    onclick="changeBackground()">
-                    <i class="ph ph-image" style="margin-right: 4px; font-size: 0.9rem;"></i> BG
+                <button class="timer-btn" style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                    onclick="changeBackground()" title="Background">
+                    <i class="ph ph-image" style="font-size: 1.4rem;"></i>
+                </button>
+                <button class="timer-btn" style="flex: 1; margin: 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                    onclick="toggleNightMode()" title="Sleep Mode">
+                    <i class="ph ph-moon" style="font-size: 1.4rem;"></i>
                 </button>
             </section>
         </div>
     </main>
 
+    <!-- Modal de Notícias -->
+    <div id="news-modal">
+        <div class="modal-content">
+            <i class="ph ph-x close-modal" onclick="closeNewsModal()"></i>
+            <h2 id="modal-title">Título</h2>
+            <div id="modal-source">Fonte</div>
+            <div id="modal-desc">Descrição</div>
+        </div>
+    </div>
 
+    <!-- TESTE DE TRÂNSITO (MOCK GENÉRICO) -->
+    <div
+        style="width: 1024px; margin: 16px auto; padding: 12px 20px; background: rgba(0, 0, 0, 0.4); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <i class="ph ph-car" style="font-size: 2.2rem; color: #fbbf24;"></i>
+            <div>
+                <div style="font-size: 1.2rem; font-weight: 700;">Jaraguá <i class="ph ph-arrow-right"></i> Cenno
+                    Sbrigui</div>
+                <div id="traffic-status" style="font-size: 0.9rem; color: var(--text-secondary);">Calculando trânsito...
+                </div>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <div id="traffic-time" style="font-size: 1.8rem; font-weight: 800; color: #ef4444;">-- min</div>
+            <div id="traffic-arrival" style="font-size: 0.9rem; color: var(--text-secondary);">Chegada est. --:--</div>
+        </div>
+    </div>
+
+    <div id="night-mode-overlay"></div>
 
     <script src="script.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY&callback=initMap" async defer></script>
 </body>
 
 </html>

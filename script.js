@@ -92,7 +92,7 @@ setInterval(changeBackground, CHANGE_BG_INTERVAL);
 async function fetchWeather() {
     try {
         const apiProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-        const url = `${apiProtocol}//api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8&models=best_match`;
+        const url = `${apiProtocol}//api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code,is_day&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8&models=best_match`;
         const aqiUrl = `${apiProtocol}//air-quality-api.open-meteo.com/v1/air-quality?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=us_aqi&timezone=America%2FSao_Paulo`;
 
         const [response, aqiResponse] = await Promise.all([fetch(url), fetch(aqiUrl)]);
@@ -292,6 +292,7 @@ const RSS_FEEDS = [
 ];
 
 // ======= NOTÍCIAS =======
+let globalNewsItems = [];
 
 async function fetchAllNews() {
     newsList.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">Carregando notícias...</div>';
@@ -318,7 +319,7 @@ async function fetchAllNews() {
         shuffleArray(allItems);
         newsList.innerHTML = '';
 
-        allItems.forEach(item => {
+        allItems.forEach((item, index) => {
             let dateStr = '';
             if (item.pubDate) {
                 try {
@@ -334,6 +335,8 @@ async function fetchAllNews() {
 
             const el = document.createElement('div');
             el.className = 'news-item';
+            el.style.cursor = 'pointer';
+            el.onclick = () => openNewsModal(index);
             el.innerHTML = `
                 <div class="news-header">
                     <span class="news-tag ${item.tagClass}">${item.tag}</span>
@@ -343,6 +346,8 @@ async function fetchAllNews() {
             `;
             newsList.appendChild(el);
         });
+
+        globalNewsItems = allItems;
 
     } catch (error) {
         console.error("Erro ao buscar notícias: ", error);
@@ -658,3 +663,157 @@ function toggleFullscreen() {
         }
     }
 }
+
+// ======== BATERIA ========
+async function initBattery() {
+    if ('getBattery' in navigator) {
+        try {
+            const battery = await navigator.getBattery();
+            function updateBattery() {
+                const levelEl = document.getElementById('battery-level');
+                const iconEl = document.getElementById('battery-icon');
+                if(!levelEl || !iconEl) return;
+                
+                const level = Math.round(battery.level * 100);
+                levelEl.textContent = level + '%';
+                
+                if (battery.charging) {
+                    iconEl.className = 'ph ph-battery-charging';
+                    iconEl.style.color = '#10b981'; // green
+                } else {
+                    iconEl.style.color = '';
+                    if (level > 80) iconEl.className = 'ph ph-battery-full';
+                    else if (level > 50) iconEl.className = 'ph ph-battery-high';
+                    else if (level > 20) iconEl.className = 'ph ph-battery-medium';
+                    else iconEl.className = 'ph ph-battery-low';
+                }
+            }
+            updateBattery();
+            battery.addEventListener('levelchange', updateBattery);
+            battery.addEventListener('chargingchange', updateBattery);
+        } catch(e) { console.error('Battery API error', e); }
+    }
+}
+initBattery();
+
+// ======== MODO NOTURNO ========
+let nightModeOverride = null;
+
+window.toggleNightMode = function() {
+    const overlay = document.getElementById('night-mode-overlay');
+    if (!overlay) return;
+    
+    if (overlay.classList.contains('active')) {
+        overlay.classList.remove('active');
+        nightModeOverride = false;
+    } else {
+        overlay.classList.add('active');
+        nightModeOverride = true;
+    }
+}
+
+function checkNightMode() {
+    if (nightModeOverride !== null) return; // User manually toggled
+    const overlay = document.getElementById('night-mode-overlay');
+    if (!overlay) return;
+    
+    const hour = new Date().getHours();
+    const isNight = hour >= 23 || hour < 5;
+    
+    if (isNight && !overlay.classList.contains('active')) {
+        overlay.classList.add('active');
+    } else if (!isNight && overlay.classList.contains('active')) {
+        overlay.classList.remove('active');
+    }
+}
+setInterval(checkNightMode, 60000);
+checkNightMode();
+
+// ======== MODAL DE NOTÍCIAS ========
+window.openNewsModal = function(index) {
+    const item = globalNewsItems[index];
+    if (!item) return;
+    
+    document.getElementById('modal-title').textContent = item.title || '';
+    document.getElementById('modal-source').textContent = 'Fonte: ' + (item.source || '');
+    
+    let desc = item.description || '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = desc;
+    let cleanText = tmp.textContent || tmp.innerText || '';
+    
+    if (!cleanText.trim()) cleanText = 'Resumo não disponível para esta matéria.';
+    
+    document.getElementById('modal-desc').textContent = cleanText;
+    document.getElementById('news-modal').classList.add('active');
+}
+
+window.closeNewsModal = function() {
+    document.getElementById('news-modal').classList.remove('active');
+}
+
+document.getElementById('news-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeNewsModal();
+});
+
+// ======== API DO TRÂNSITO (GOOGLE MAPS) ========
+window.initMap = function() {
+    const origin = 'Rua Jaraguá, São Paulo, SP'; 
+    const destination = 'Rua Cenno Sbrigui, São Paulo, SP';
+    
+    const service = new google.maps.DistanceMatrixService();
+    
+    function fetchTraffic() {
+        service.getDistanceMatrix({
+            origins: [origin],
+            destinations: [destination],
+            travelMode: 'DRIVING',
+            drivingOptions: {
+                departureTime: new Date(),
+                trafficModel: 'bestguess'
+            }
+        }, function(response, status) {
+            if (status == 'OK') {
+                const result = response.rows[0].elements[0];
+                if (result.status === 'OK') {
+                    const normalDuration = result.duration.value;
+                    const trafficDuration = result.duration_in_traffic ? result.duration_in_traffic.value : normalDuration;
+                    
+                    const timeMin = Math.round(trafficDuration / 60);
+                    document.getElementById('traffic-time').textContent = timeMin + ' min';
+                    
+                    const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
+                    const arrH = String(arrivalTime.getHours()).padStart(2, '0');
+                    const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
+                    document.getElementById('traffic-arrival').textContent = 'Chegada est. ' + arrH + ':' + arrM;
+                    
+                    const diff = trafficDuration - normalDuration;
+                    let statusText = 'Trânsito Leve (No tempo)';
+                    let statusColor = 'var(--text-secondary)';
+                    let iconColor = '#10b981'; 
+                    
+                    if (diff > 300 && diff <= 900) { 
+                        statusText = 'Trânsito Moderado (+ ' + Math.round(diff/60) + ' min)';
+                        statusColor = '#fbbf24'; 
+                        iconColor = '#fbbf24';
+                    } else if (diff > 900) { 
+                        statusText = 'Trânsito Pesado (+ ' + Math.round(diff/60) + ' min)';
+                        statusColor = '#ef4444'; 
+                        iconColor = '#ef4444';
+                    }
+                    
+                    document.getElementById('traffic-status').textContent = statusText;
+                    document.getElementById('traffic-status').style.color = statusColor;
+                    document.getElementById('traffic-time').style.color = iconColor;
+                }
+            } else {
+                console.error('Distance Matrix failed due to: ' + status);
+            }
+        });
+    }
+    
+    fetchTraffic();
+    setInterval(fetchTraffic, 15 * 60 * 1000); // Atualiza a cada 15 min
+}
+
+
