@@ -756,78 +756,62 @@ document.getElementById('news-modal').addEventListener('click', function(e) {
     if (e.target === this) closeNewsModal();
 });
 
-// ======== API DO TRÂNSITO (GOOGLE MAPS) ========
-window.initMap = function() {
-    try {
-        if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
-            throw new Error("API do Google Maps não carregou corretamente neste navegador.");
-        }
-        const origin = 'Rua Jaraguá, São Paulo, SP'; 
-        const destination = 'Rua Cenno Sbrigui, São Paulo, SP';
-        
-        const service = new google.maps.DistanceMatrixService();
+// ======== API DO TRÂNSITO (TOMTOM) ========
+window.initTomTomTraffic = async function() {
+    // Coordenadas das Ruas: Jaraguá (-23.5273,-46.6436) até Cenno Sbrigui (-23.5183,-46.6789)
+    const apiKey = 'W9LUaOZsER8QrfgE1K4Ff1DfQ2HmjsTE';
+    const origin = '-23.5273,-46.6436';
+    const destination = '-23.5183,-46.6789';
+    const url = `https://api.tomtom.com/routing/1/calculateRoute/${origin}:${destination}/json?key=${apiKey}&traffic=true`;
     
-    function fetchTraffic() {
-        service.getDistanceMatrix({
-            origins: [origin],
-            destinations: [destination],
-            travelMode: 'DRIVING',
-            drivingOptions: {
-                departureTime: new Date(),
-                trafficModel: 'bestguess'
-            }
-        }, function(response, status) {
-            if (status == 'OK') {
-                const result = response.rows[0].elements[0];
-                if (result.status === 'OK') {
-                    const normalDuration = result.duration.value;
-                    const trafficDuration = result.duration_in_traffic ? result.duration_in_traffic.value : normalDuration;
-                    
-                    const timeMin = Math.round(trafficDuration / 60);
-                    document.getElementById('traffic-time').textContent = timeMin + ' min';
-                    
-                    const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
-                    const arrH = String(arrivalTime.getHours()).padStart(2, '0');
-                    const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
-                    document.getElementById('traffic-arrival').textContent = 'Chegada est. ' + arrH + ':' + arrM;
-                    
-                    const diff = trafficDuration - normalDuration;
-                    let statusText = 'Trânsito Leve (No tempo)';
-                    let statusColor = 'var(--text-secondary)';
-                    let iconColor = '#10b981'; 
-                    
-                    if (diff > 300 && diff <= 900) { 
-                        statusText = 'Trânsito Moderado (+ ' + Math.round(diff/60) + ' min)';
-                        statusColor = '#fbbf24'; 
-                        iconColor = '#fbbf24';
-                    } else if (diff > 900) { 
-                        statusText = 'Trânsito Pesado (+ ' + Math.round(diff/60) + ' min)';
-                        statusColor = '#ef4444'; 
-                        iconColor = '#ef4444';
-                    }
-                    
-                    document.getElementById('traffic-status').textContent = statusText;
-                    document.getElementById('traffic-status').style.color = statusColor;
-                    document.getElementById('traffic-time').style.color = iconColor;
+    async function fetchTraffic() {
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.routes && data.routes.length > 0) {
+                const summary = data.routes[0].summary;
+                
+                const trafficDuration = summary.travelTimeInSeconds;
+                const delay = summary.trafficDelayInSeconds || 0;
+                
+                const timeMin = Math.round(trafficDuration / 60);
+                document.getElementById('traffic-time').textContent = timeMin + ' min';
+                
+                const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
+                const arrH = String(arrivalTime.getHours()).padStart(2, '0');
+                const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
+                document.getElementById('traffic-arrival').textContent = 'Chegada est. ' + arrH + ':' + arrM;
+                
+                let statusText = 'Trânsito Leve (No tempo)';
+                let statusColor = 'var(--text-secondary)';
+                let iconColor = '#10b981'; 
+                
+                if (delay > 180 && delay <= 600) { // +3 a +10 min
+                    statusText = 'Trânsito Moderado (+ ' + Math.round(delay/60) + ' min)';
+                    statusColor = '#fbbf24'; 
+                    iconColor = '#fbbf24';
+                } else if (delay > 600) { // > +10 min
+                    statusText = 'Trânsito Pesado (+ ' + Math.round(delay/60) + ' min)';
+                    statusColor = '#ef4444'; 
+                    iconColor = '#ef4444';
                 }
-            } else {
-                console.error('Distance Matrix failed due to: ' + status);
+                
+                document.getElementById('traffic-status').textContent = statusText;
+                document.getElementById('traffic-status').style.color = statusColor;
+                document.getElementById('traffic-time').style.color = iconColor;
             }
-        });
+        } catch (e) {
+            console.error("Trânsito TomTom Falhou:", e);
+            document.getElementById('traffic-status').textContent = 'Erro ao carregar trânsito';
+            document.getElementById('traffic-status').style.color = '#ef4444';
+            document.getElementById('traffic-time').textContent = '--';
+        }
     }
     
     fetchTraffic();
-    setInterval(fetchTraffic, 15 * 60 * 1000); // Atualiza a cada 15 min
-    } catch (e) {
-        console.error("Trânsito Falhou:", e);
-        const statusEl = document.getElementById('traffic-status');
-        const timeEl = document.getElementById('traffic-time');
-        if (statusEl) {
-            statusEl.textContent = 'Erro: Navegador Incompatível (v70)';
-            statusEl.style.color = '#ef4444';
-        }
-        if (timeEl) timeEl.textContent = '--';
-    }
+    setInterval(fetchTraffic, 15 * 60 * 1000);
 }
+initTomTomTraffic();
 
 
