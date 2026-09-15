@@ -163,7 +163,7 @@ body {
     display: flex;
     align-items: stretch;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .temp-main {
@@ -255,12 +255,12 @@ body {
     flex-direction: column;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
-    padding: 11px 1px;
+    padding: 11px 0px;
     border-radius: 8px;
     min-width: 48.25px;
     margin-right: 4px;
-    height: 88px;
-    gap: 1px;
+    height: 85px;
+    gap: -1px;
 }
 
 .hourly-item:last-child {
@@ -344,6 +344,8 @@ body {
     position: absolute;
     width: 100%;
     /* translateY manipulado via JS para scroll infinito perfeito */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .news-item {
@@ -458,22 +460,19 @@ body {
 }
 
 .calendar-day.holiday-past {
-    background: rgba(100, 116, 110, 0.3);
-    /* verde quase cinza (desaturado) */
+    background: rgba(45, 145, 110, 0.3);
+    /* verde mais saturado para feriado que passou */
     font-weight: 700;
     color: #cbd5e1;
-    border: 1px solid rgba(100, 116, 110, 0.5);
+    border: 1px solid rgba(45, 145, 110, 0.5);
 }
 
 .calendar-legend {
-    margin-top: 12px;
+    margin-top: 0px;
     font-size: 0.85rem;
     color: var(--text-secondary);
     display: flex;
     flex-direction: column;
-    max-height: 40px;
-    overflow-y: auto;
-    scrollbar-width: thin;
 }
 
 .calendar-legend div {

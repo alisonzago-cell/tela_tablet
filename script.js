@@ -376,7 +376,7 @@ function autoScrollNews() {
         if (scrollPos >= newsList.scrollHeight - container.clientHeight) {
             scrollPos = 0; // volta pro topo
         }
-        newsList.style.transform = `translateY(-${scrollPos}px)`;
+        newsList.style.transform = `translate3d(0, -${scrollPos}px, 0)`;
     }
     requestAnimationFrame(autoScrollNews);
 }
@@ -389,6 +389,38 @@ const calendarLegend = document.getElementById('calendar-legend');
 // Variável para armazenar o mês/ano gerado
 let currentCalendarTitleText = "Calendário";
 let isTimerSlideCalendar = true;
+let currentMonthHolidays = [];
+let legendPage = 0;
+const LEGEND_ITEMS_PER_PAGE = 2;
+
+window.changeLegendPage = function(dir) {
+    if (currentMonthHolidays.length === 0) return;
+    const maxPage = Math.ceil(currentMonthHolidays.length / LEGEND_ITEMS_PER_PAGE) - 1;
+    legendPage += dir;
+    if (legendPage < 0) legendPage = maxPage;
+    if (legendPage > maxPage) legendPage = 0;
+    renderLegend();
+}
+
+function renderLegend() {
+    const legendEl = document.getElementById('calendar-legend');
+    if (!legendEl) return;
+    legendEl.innerHTML = '';
+    
+    const start = legendPage * LEGEND_ITEMS_PER_PAGE;
+    const items = currentMonthHolidays.slice(start, start + LEGEND_ITEMS_PER_PAGE);
+    
+    items.forEach(h => {
+        const item = document.createElement('div');
+        if (h.isPast) item.style.opacity = '0.5';
+        item.style.marginBottom = '2px';
+        item.style.whiteSpace = 'nowrap';
+        item.style.overflow = 'hidden';
+        item.style.textOverflow = 'ellipsis';
+        item.innerHTML = `<strong>${h.dateStr}</strong> - ${h.name}`;
+        legendEl.appendChild(item);
+    });
+}
 
 function toggleCalendarTimerSlider() {
     const slider = document.getElementById('calendar-timer-slider');
@@ -427,11 +459,14 @@ async function renderCalendar() {
         console.error(e);
     }
 
+
+
     const firstDayIndex = new Date(year, month, 1).getDay();
     const lastDay = new Date(year, month + 1, 0).getDate();
 
     calendarGrid.innerHTML = '';
     if (calendarLegend) calendarLegend.innerHTML = '';
+    currentMonthHolidays = [];
 
     // Preencher dias vazios antes do dia 1
     for (let i = 0; i < firstDayIndex; i++) {
@@ -462,25 +497,39 @@ async function renderCalendar() {
         const holiday = holidays.find(h => h.date === dateStr);
 
         if (holiday) {
+            let isPast = false;
             if (year === now.getFullYear() && month === now.getMonth() && i < now.getDate()) {
                 dayDiv.classList.add('holiday-past');
+                isPast = true;
             } else if (year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth())) {
                 dayDiv.classList.add('holiday-past');
+                isPast = true;
             } else {
                 dayDiv.classList.add('holiday');
             }
             dayDiv.title = holiday.name;
 
             // Adiciona na legenda se o feriado for neste mês
-            if (calendarLegend) {
-                const legendItem = document.createElement('div');
-                legendItem.innerHTML = `<strong>${String(i).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}</strong> - ${holiday.name}`;
-                calendarLegend.appendChild(legendItem);
-            }
+            currentMonthHolidays.push({
+                dateStr: `${String(i).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}`,
+                name: holiday.name,
+                isPast: isPast,
+                day: i
+            });
         }
 
         calendarGrid.appendChild(dayDiv);
     }
+
+    // Ordenar feriados: feriados passados vão para o final
+    currentMonthHolidays.sort((a, b) => {
+        if (a.isPast && !b.isPast) return 1;
+        if (!a.isPast && b.isPast) return -1;
+        return a.day - b.day;
+    });
+
+    legendPage = 0;
+    renderLegend();
 }
 
 renderCalendar();
