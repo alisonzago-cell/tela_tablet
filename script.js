@@ -764,65 +764,49 @@ window.initTomTomTraffic = async function () {
     const destination = '-23.5183,-46.6789';
     const url = `https://api.tomtom.com/routing/1/calculateRoute/${origin}:${destination}/json?key=${apiKey}&traffic=true`;
 
-    function fetchTraffic() {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
+    async function fetchTraffic() {
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
 
-        xhr.onload = function () {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                try {
-                    const data = JSON.parse(xhr.responseText);
-                    if (data.routes && data.routes.length > 0) {
-                        const summary = data.routes[0].summary;
+            if (data.routes && data.routes.length > 0) {
+                const summary = data.routes[0].summary;
 
-                        const trafficDuration = summary.travelTimeInSeconds;
-                        const delay = summary.trafficDelayInSeconds || 0;
+                const trafficDuration = summary.travelTimeInSeconds;
+                const delay = summary.trafficDelayInSeconds || 0;
 
-                        const timeMin = Math.round(trafficDuration / 60);
-                        document.getElementById('traffic-time').textContent = timeMin + ' min';
+                const timeMin = Math.round(trafficDuration / 60);
+                document.getElementById('traffic-time').textContent = timeMin + ' min';
 
-                        const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
-                        const arrH = String(arrivalTime.getHours()).padStart(2, '0');
-                        const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
-                        document.getElementById('traffic-arrival').textContent = 'Chegada est. ' + arrH + ':' + arrM;
+                const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
+                const arrH = String(arrivalTime.getHours()).padStart(2, '0');
+                const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
+                document.getElementById('traffic-arrival').textContent = 'Chegada est. ' + arrH + ':' + arrM;
 
-                        let statusText = 'Trânsito Leve (No tempo)';
-                        let statusColor = 'var(--text-secondary)';
-                        let iconColor = '#10b981';
+                let statusText = 'Trânsito Leve (No tempo)';
+                let statusColor = 'var(--text-secondary)';
+                let iconColor = '#10b981';
 
-                        if (delay > 180 && delay <= 600) { // +3 a +10 min
-                            statusText = 'Trânsito Moderado (+ ' + Math.round(delay / 60) + ' min)';
-                            statusColor = '#fbbf24';
-                            iconColor = '#fbbf24';
-                        } else if (delay > 600) { // > +10 min
-                            statusText = 'Trânsito Pesado (+ ' + Math.round(delay / 60) + ' min)';
-                            statusColor = '#ef4444';
-                            iconColor = '#ef4444';
-                        }
-
-                        document.getElementById('traffic-status').textContent = statusText;
-                        document.getElementById('traffic-status').style.color = statusColor;
-                        document.getElementById('traffic-time').style.color = iconColor;
-                    }
-                } catch (e) {
-                    console.error("Erro ao ler JSON da TomTom:", e);
+                if (delay > 180 && delay <= 600) {
+                    statusText = 'Trânsito Moderado (+ ' + Math.round(delay / 60) + ' min)';
+                    statusColor = '#fbbf24';
+                    iconColor = '#fbbf24';
+                } else if (delay > 600) {
+                    statusText = 'Trânsito Pesado (+ ' + Math.round(delay / 60) + ' min)';
+                    statusColor = '#ef4444';
+                    iconColor = '#ef4444';
                 }
-            } else {
-                console.error("Trânsito TomTom Retornou Erro:", xhr.status);
-                document.getElementById('traffic-status').textContent = 'Erro ao carregar trânsito';
-                document.getElementById('traffic-status').style.color = '#ef4444';
-                document.getElementById('traffic-time').textContent = '--';
-            }
-        };
 
-        xhr.onerror = function () {
-            console.error("Trânsito TomTom Falhou: Erro de Rede (XHR)");
+                document.getElementById('traffic-status').textContent = statusText;
+                document.getElementById('traffic-status').style.color = statusColor;
+                document.getElementById('traffic-time').style.color = iconColor;
+            }
+        } catch (e) {
+            console.error("Trânsito TomTom Falhou (Fetch):", e);
             document.getElementById('traffic-status').textContent = 'Falha de Conexão (SSL/CORS)';
             document.getElementById('traffic-status').style.color = '#ef4444';
             document.getElementById('traffic-time').textContent = '--';
-        };
-
-        xhr.send();
+        }
     }
 
     fetchTraffic();
