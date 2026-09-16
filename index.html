@@ -208,21 +208,53 @@
     </div>
 
     <!-- TESTE DE TRÂNSITO (MOCK GENÉRICO) -->
-    <div
-        style="width: 1024px; margin: 16px auto; padding: 12px 20px; background: rgba(0, 0, 0, 0.4); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <i class="ph ph-car" style="font-size: 2.2rem; color: #fbbf24;"></i>
-            <div>
-                <div style="font-size: 1.2rem; font-weight: 700;">Jaraguá <i class="ph ph-arrow-right"></i> Cenno
-                    Sbrigui</div>
-                <div id="traffic-status" style="font-size: 0.9rem; color: var(--text-secondary);">Calculando trânsito...
+    <div style="width: 1024px; margin: 16px auto; display: flex; flex-direction: column; gap: 8px;">
+        <!-- Rota 1: Cenno Sbrigui -->
+        <div style="padding: 12px 20px; background: rgba(0, 0, 0, 0.4); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <i class="ph ph-car" id="traffic-icon-1" style="font-size: 2.2rem; color: #fbbf24;"></i>
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: 700;">Jaraguá <i class="ph ph-arrow-right"></i> Água Branca (Cenno Sbrigui, 378)</div>
+                    <div id="traffic-status-1" style="font-size: 0.9rem; color: var(--text-secondary);">Calculando trânsito...</div>
                 </div>
             </div>
+            <div style="text-align: right;">
+                <div id="traffic-time-1" style="font-size: 1.8rem; font-weight: 800; color: #ef4444;">-- min</div>
+                <div id="traffic-arrival-1" style="font-size: 0.9rem; color: var(--text-secondary);">Chegada est. --:--</div>
+            </div>
         </div>
-        <div style="text-align: right;">
-            <div id="traffic-time" style="font-size: 1.8rem; font-weight: 800; color: #ef4444;">-- min</div>
-            <div id="traffic-arrival" style="font-size: 0.9rem; color: var(--text-secondary);">Chegada est. --:--</div>
+        
+        <!-- Rota 2: Moema -->
+        <div style="padding: 12px 20px; background: rgba(0, 0, 0, 0.4); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <i class="ph ph-car" id="traffic-icon-2" style="font-size: 2.2rem; color: #fbbf24;"></i>
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: 700;">Jaraguá <i class="ph ph-arrow-right"></i> Moema (Chanés, 205)</div>
+                    <div id="traffic-status-2" style="font-size: 0.9rem; color: var(--text-secondary);">Calculando trânsito...</div>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div id="traffic-time-2" style="font-size: 1.8rem; font-weight: 800; color: #ef4444;">-- min</div>
+                <div id="traffic-arrival-2" style="font-size: 0.9rem; color: var(--text-secondary);">Chegada est. --:--</div>
+            </div>
         </div>
+
+        <!-- Rota 3: Barra Funda -->
+        <div style="padding: 12px 20px; background: rgba(0, 0, 0, 0.4); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <i class="ph ph-car" id="traffic-icon-3" style="font-size: 2.2rem; color: #fbbf24;"></i>
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: 700;">Jaraguá <i class="ph ph-arrow-right"></i> Barra Funda (J. M. de Macedo, 329)</div>
+                    <div id="traffic-status-3" style="font-size: 0.9rem; color: var(--text-secondary);">Calculando trânsito...</div>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div id="traffic-time-3" style="font-size: 1.8rem; font-weight: 800; color: #ef4444;">-- min</div>
+                <div id="traffic-arrival-3" style="font-size: 0.9rem; color: var(--text-secondary);">Chegada est. --:--</div>
+            </div>
+        </div>
+        
+        <div style="text-align: right; font-size: 0.8rem; color: rgba(255,255,255,0.3); padding-right: 8px; margin-top: -4px;">Dados via Google Maps</div>
     </div>
 
     <div id="night-mode-overlay"></div>

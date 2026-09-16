@@ -756,62 +756,80 @@ document.getElementById('news-modal').addEventListener('click', function (e) {
     if (e.target === this) closeNewsModal();
 });
 
-// ======== API DO TRÂNSITO (TOMTOM) ========
-window.initTomTomTraffic = async function () {
-    // Coordenadas das Ruas: Jaraguá (-23.5273,-46.6436) até Cenno Sbrigui (-23.5183,-46.6789)
-    const apiKey = 'W9LUaOZsER8QrfgE1K4Ff1DfQ2HmjsTE';
-    const origin = '-23.5273,-46.6436';
-    const destination = '-23.5183,-46.6789';
-    const url = `https://api.tomtom.com/routing/1/calculateRoute/${origin}:${destination}/json?key=${apiKey}&traffic=true`;
+// ======== API DO TRÂNSITO (GOOGLE MAPS VIA PROXY) ========
+window.initGoogleMapsTraffic = async function () {
+    const apiKey = 'AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY';
+
+    // O Proxy Mágico Universal do Alison na Cloudflare!
+    const proxyBase = 'https://tablet.alison-zago.workers.dev/?url=';
+
+    // Ponto de Partida: Rua Jaraguá, 737 (Latitude -23.524098, Longitude -46.647863)
+    const origin = '-23.524098,-46.647863';
+
+    // Destinos
+    const destinations = [
+        { id: 1, coords: '-23.511595,-46.694691' }, // R. Cenno Sbrigui, 378 (Água Branca)
+        { id: 2, coords: '-23.612867,-46.668438' }, // R. dos Chanés, 205 (Moema)
+        { id: 3, coords: '-23.522546,-46.663235' }  // R. Joaquim Manuel de Macedo, 329 (Barra Funda)
+    ];
 
     async function fetchTraffic() {
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
+        for (const dest of destinations) {
+            const googleUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${dest.coords}&departure_time=now&key=${apiKey}`;
+            // Envia a URL do Google Maps para o Worker do Cloudflare usando encodeURIComponent para segurança
+            const url = proxyBase + encodeURIComponent(googleUrl);
 
-            if (data.routes && data.routes.length > 0) {
-                const summary = data.routes[0].summary;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
 
-                const trafficDuration = summary.travelTimeInSeconds;
-                const delay = summary.trafficDelayInSeconds || 0;
+                if (data.rows && data.rows[0].elements && data.rows[0].elements[0].status === "OK") {
+                    const element = data.rows[0].elements[0];
 
-                const timeMin = Math.round(trafficDuration / 60);
-                document.getElementById('traffic-time').textContent = timeMin + ' min';
+                    const trafficDuration = element.duration_in_traffic ? element.duration_in_traffic.value : element.duration.value;
+                    const typicalDuration = element.duration.value;
+                    let delay = trafficDuration - typicalDuration;
+                    if (delay < 0) delay = 0;
 
-                const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
-                const arrH = String(arrivalTime.getHours()).padStart(2, '0');
-                const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
-                document.getElementById('traffic-arrival').textContent = 'Chegada est. ' + arrH + ':' + arrM;
+                    const timeMin = Math.round(trafficDuration / 60);
+                    document.getElementById(`traffic-time-${dest.id}`).textContent = timeMin + ' min';
 
-                let statusText = 'Trânsito Leve (No tempo)';
-                let statusColor = 'var(--text-secondary)';
-                let iconColor = '#10b981';
+                    const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
+                    const arrH = String(arrivalTime.getHours()).padStart(2, '0');
+                    const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
+                    document.getElementById(`traffic-arrival-${dest.id}`).textContent = 'Chegada est. ' + arrH + ':' + arrM;
 
-                if (delay > 180 && delay <= 600) {
-                    statusText = 'Trânsito Moderado (+ ' + Math.round(delay / 60) + ' min)';
-                    statusColor = '#fbbf24';
-                    iconColor = '#fbbf24';
-                } else if (delay > 600) {
-                    statusText = 'Trânsito Pesado (+ ' + Math.round(delay / 60) + ' min)';
-                    statusColor = '#ef4444';
-                    iconColor = '#ef4444';
+                    let statusText = 'Trânsito Leve (No tempo)';
+                    let statusColor = 'var(--text-secondary)';
+                    let iconColor = '#10b981';
+
+                    if (delay > 180 && delay <= 600) {
+                        statusText = 'Trânsito Moderado (+ ' + Math.round(delay / 60) + ' min)';
+                        statusColor = '#fbbf24';
+                        iconColor = '#fbbf24';
+                    } else if (delay > 600) {
+                        statusText = 'Trânsito Pesado (+ ' + Math.round(delay / 60) + ' min)';
+                        statusColor = '#ef4444';
+                        iconColor = '#ef4444';
+                    }
+
+                    document.getElementById(`traffic-status-${dest.id}`).textContent = statusText;
+                    document.getElementById(`traffic-status-${dest.id}`).style.color = statusColor;
+                    document.getElementById(`traffic-time-${dest.id}`).style.color = iconColor;
+
+                    const iconEl = document.getElementById(`traffic-icon-${dest.id}`);
+                    if (iconEl) iconEl.style.color = iconColor;
                 }
-
-                document.getElementById('traffic-status').textContent = statusText;
-                document.getElementById('traffic-status').style.color = statusColor;
-                document.getElementById('traffic-time').style.color = iconColor;
+            } catch (e) {
+                console.error(`Trânsito Google Maps Falhou (Rota ${dest.id}):`, e);
+                document.getElementById(`traffic-status-${dest.id}`).textContent = 'Erro ao carregar';
+                document.getElementById(`traffic-status-${dest.id}`).style.color = '#ef4444';
+                document.getElementById(`traffic-time-${dest.id}`).textContent = '--';
             }
-        } catch (e) {
-            console.error("Trânsito TomTom Falhou (Fetch):", e);
-            document.getElementById('traffic-status').textContent = 'Falha de Conexão (SSL/CORS)';
-            document.getElementById('traffic-status').style.color = '#ef4444';
-            document.getElementById('traffic-time').textContent = '--';
         }
     }
 
     fetchTraffic();
     setInterval(fetchTraffic, 15 * 60 * 1000);
 }
-initTomTomTraffic();
-
-
+initGoogleMapsTraffic();
