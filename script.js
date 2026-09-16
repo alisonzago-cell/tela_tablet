@@ -848,14 +848,16 @@ window.testGoogleWeather = async function () {
 
         if (data.temperature) {
             document.getElementById('gweather-temp').textContent = Math.round(data.temperature.degrees) + '°';
-            document.getElementById('gweather-desc').textContent = data.weatherCondition?.description?.text || 'Condição atualizada';
 
-            const rain = data.precipitation?.probability?.percent || 0;
+            const desc = (data.weatherCondition && data.weatherCondition.description && data.weatherCondition.description.text) ? data.weatherCondition.description.text : 'Condição atualizada';
+            document.getElementById('gweather-desc').textContent = desc;
+
+            const rain = (data.precipitation && data.precipitation.probability && data.precipitation.probability.percent) ? data.precipitation.probability.percent : 0;
             const umi = data.relativeHumidity || 0;
             document.getElementById('gweather-extra').textContent = 'Chuva: ' + rain + '% | Umi: ' + umi + '%';
 
             const iconEl = document.getElementById('gweather-icon');
-            const type = data.weatherCondition?.type || '';
+            const type = (data.weatherCondition && data.weatherCondition.type) ? data.weatherCondition.type : '';
             if (type.includes('RAIN') || type.includes('STORM')) iconEl.className = 'ph ph-cloud-rain';
             else if (type.includes('CLOUDY')) iconEl.className = 'ph ph-cloud';
             else iconEl.className = 'ph ph-sun';
