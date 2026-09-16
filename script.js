@@ -109,7 +109,7 @@ async function fetchWeather() {
             if (aqi > 150) { aqiText = "Ruim"; aqiColor = "#ef4444"; } // vermelho
             if (aqi > 200) { aqiText = "M. Ruim"; aqiColor = "#9333ea"; } // roxo
             if (aqi > 300) { aqiText = "Péssimo"; aqiColor = "#7f1d1d"; } // vinho
-            
+
             const aqiEl = document.getElementById('current-aqi');
             if (aqiEl) {
                 aqiEl.textContent = aqiText;
@@ -398,7 +398,7 @@ let currentMonthHolidays = [];
 let legendPage = 0;
 const LEGEND_ITEMS_PER_PAGE = 2;
 
-window.changeLegendPage = function(dir) {
+window.changeLegendPage = function (dir) {
     if (currentMonthHolidays.length === 0) return;
     const maxPage = Math.ceil(currentMonthHolidays.length / LEGEND_ITEMS_PER_PAGE) - 1;
     legendPage += dir;
@@ -411,10 +411,10 @@ function renderLegend() {
     const legendEl = document.getElementById('calendar-legend');
     if (!legendEl) return;
     legendEl.innerHTML = '';
-    
+
     const start = legendPage * LEGEND_ITEMS_PER_PAGE;
     const items = currentMonthHolidays.slice(start, start + LEGEND_ITEMS_PER_PAGE);
-    
+
     items.forEach(h => {
         const item = document.createElement('div');
         if (h.isPast) item.style.opacity = '0.5';
@@ -672,11 +672,11 @@ async function initBattery() {
             function updateBattery() {
                 const levelEl = document.getElementById('battery-level');
                 const iconEl = document.getElementById('battery-icon');
-                if(!levelEl || !iconEl) return;
-                
+                if (!levelEl || !iconEl) return;
+
                 const level = Math.round(battery.level * 100);
                 levelEl.innerHTML = '&nbsp;' + level + '%';
-                
+
                 if (battery.charging) {
                     iconEl.className = 'ph ph-battery-charging';
                     iconEl.style.color = '#10b981'; // green
@@ -691,7 +691,7 @@ async function initBattery() {
             updateBattery();
             battery.addEventListener('levelchange', updateBattery);
             battery.addEventListener('chargingchange', updateBattery);
-        } catch(e) { console.error('Battery API error', e); }
+        } catch (e) { console.error('Battery API error', e); }
     }
 }
 initBattery();
@@ -699,10 +699,10 @@ initBattery();
 // ======== MODO NOTURNO ========
 let nightModeOverride = null;
 
-window.toggleNightMode = function() {
+window.toggleNightMode = function () {
     const overlay = document.getElementById('night-mode-overlay');
     if (!overlay) return;
-    
+
     if (overlay.classList.contains('active')) {
         overlay.classList.remove('active');
         nightModeOverride = false;
@@ -716,10 +716,10 @@ function checkNightMode() {
     if (nightModeOverride !== null) return; // User manually toggled
     const overlay = document.getElementById('night-mode-overlay');
     if (!overlay) return;
-    
+
     const hour = new Date().getHours();
     const isNight = hour >= 23 || hour < 5;
-    
+
     if (isNight && !overlay.classList.contains('active')) {
         overlay.classList.add('active');
     } else if (!isNight && overlay.classList.contains('active')) {
@@ -730,34 +730,34 @@ setInterval(checkNightMode, 60000);
 checkNightMode();
 
 // ======== MODAL DE NOTÍCIAS ========
-window.openNewsModal = function(index) {
+window.openNewsModal = function (index) {
     const item = globalNewsItems[index];
     if (!item) return;
-    
+
     document.getElementById('modal-title').textContent = item.title || '';
     document.getElementById('modal-source').textContent = 'Fonte: ' + (item.source || '');
-    
+
     let desc = item.description || '';
     const tmp = document.createElement('div');
     tmp.innerHTML = desc;
     let cleanText = tmp.textContent || tmp.innerText || '';
-    
+
     if (!cleanText.trim()) cleanText = 'Resumo não disponível para esta matéria.';
-    
+
     document.getElementById('modal-desc').textContent = cleanText;
     document.getElementById('news-modal').classList.add('active');
 }
 
-window.closeNewsModal = function() {
+window.closeNewsModal = function () {
     document.getElementById('news-modal').classList.remove('active');
 }
 
-document.getElementById('news-modal').addEventListener('click', function(e) {
+document.getElementById('news-modal').addEventListener('click', function (e) {
     if (e.target === this) closeNewsModal();
 });
 
 // ======== API DO TRÂNSITO (TOMTOM) ========
-window.initTomTomTraffic = async function() {
+window.initTomTomTraffic = async function () {
     // Coordenadas das Ruas: Jaraguá (-23.5273,-46.6436) até Cenno Sbrigui (-23.5183,-46.6789)
     const apiKey = 'W9LUaOZsER8QrfgE1K4Ff1DfQ2HmjsTE';
     const origin = '-23.5273,-46.6436';
@@ -768,35 +768,35 @@ window.initTomTomTraffic = async function() {
         try {
             const response = await fetch(url);
             const data = await response.json();
-            
+
             if (data.routes && data.routes.length > 0) {
                 const summary = data.routes[0].summary;
-                
+
                 const trafficDuration = summary.travelTimeInSeconds;
                 const delay = summary.trafficDelayInSeconds || 0;
-                
+
                 const timeMin = Math.round(trafficDuration / 60);
                 document.getElementById('traffic-time').textContent = timeMin + ' min';
-                
+
                 const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
                 const arrH = String(arrivalTime.getHours()).padStart(2, '0');
                 const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
                 document.getElementById('traffic-arrival').textContent = 'Chegada est. ' + arrH + ':' + arrM;
-                
+
                 let statusText = 'Trânsito Leve (No tempo)';
                 let statusColor = 'var(--text-secondary)';
-                let iconColor = '#10b981'; 
-                
+                let iconColor = '#10b981';
+
                 if (delay > 180 && delay <= 600) { // +3 a +10 min
-                    statusText = 'Trânsito Moderado (+ ' + Math.round(delay/60) + ' min)';
-                    statusColor = '#fbbf24'; 
+                    statusText = 'Trânsito Moderado (+ ' + Math.round(delay / 60) + ' min)';
+                    statusColor = '#fbbf24';
                     iconColor = '#fbbf24';
                 } else if (delay > 600) { // > +10 min
-                    statusText = 'Trânsito Pesado (+ ' + Math.round(delay/60) + ' min)';
-                    statusColor = '#ef4444'; 
+                    statusText = 'Trânsito Pesado (+ ' + Math.round(delay / 60) + ' min)';
+                    statusColor = '#ef4444';
                     iconColor = '#ef4444';
                 }
-                
+
                 document.getElementById('traffic-status').textContent = statusText;
                 document.getElementById('traffic-status').style.color = statusColor;
                 document.getElementById('traffic-time').style.color = iconColor;
@@ -808,7 +808,7 @@ window.initTomTomTraffic = async function() {
             document.getElementById('traffic-time').textContent = '--';
         }
     }
-    
+
     fetchTraffic();
     setInterval(fetchTraffic, 15 * 60 * 1000);
 }
