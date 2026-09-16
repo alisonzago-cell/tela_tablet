@@ -1,4 +1,4 @@
-// Configurações
+﻿// Configurações
 const UPDATE_WEATHER_INTERVAL = 30 * 60 * 1000; // 30 min
 const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
 const LATITUDE = -23.5276;
@@ -307,11 +307,13 @@ async function fetchAllNews() {
             if (data.status === 'ok') {
                 const items = data.items.slice(0, 10); // 10 de cada
                 items.forEach(item => {
-                    allItems.push(Object.assign({}, item, {
-                        tag: feed.tag,
-                        tagClass: feed.class,
-                        source: feed.source
-                    }));
+                    if (item.title && item.title.trim().length >= 40) {
+                        allItems.push(Object.assign({}, item, {
+                            tag: feed.tag,
+                            tagClass: feed.class,
+                            source: feed.source
+                        }));
+                    }
                 });
             }
         }
@@ -833,3 +835,35 @@ window.initGoogleMapsTraffic = async function () {
     setInterval(fetchTraffic, 15 * 60 * 1000);
 }
 initGoogleMapsTraffic();
+
+// ======== TESTE GOOGLE WEATHER ========
+window.testGoogleWeather = async function () {
+    const apiKey = 'AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY';
+    const proxyBase = 'https://tablet.alison-zago.workers.dev/?url=';
+    const url = proxyBase + encodeURIComponent('https://weather.googleapis.com/v1/currentConditions:lookup?location.latitude=-23.524098&location.longitude=-46.647863&key=' + apiKey);
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.temperature) {
+            document.getElementById('gweather-temp').textContent = Math.round(data.temperature.degrees) + '°';
+            document.getElementById('gweather-desc').textContent = data.weatherCondition?.description?.text || 'Condição atualizada';
+
+            const rain = data.precipitation?.probability?.percent || 0;
+            const umi = data.relativeHumidity || 0;
+            document.getElementById('gweather-extra').textContent = 'Chuva: ' + rain + '% | Umi: ' + umi + '%';
+
+            const iconEl = document.getElementById('gweather-icon');
+            const type = data.weatherCondition?.type || '';
+            if (type.includes('RAIN') || type.includes('STORM')) iconEl.className = 'ph ph-cloud-rain';
+            else if (type.includes('CLOUDY')) iconEl.className = 'ph ph-cloud';
+            else iconEl.className = 'ph ph-sun';
+        }
+    } catch (e) {
+        console.error('Google Weather API Error: ', e);
+        document.getElementById('gweather-desc').textContent = 'Erro ao buscar clima';
+    }
+}
+testGoogleWeather();
+setInterval(testGoogleWeather, 15 * 60 * 1000);
