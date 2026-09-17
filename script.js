@@ -1,4 +1,4 @@
-﻿// Configurações
+// Configurações
 const UPDATE_WEATHER_INTERVAL = 30 * 60 * 1000; // 30 min
 const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
 const LATITUDE = -23.5276;
@@ -91,13 +91,30 @@ setInterval(changeBackground, CHANGE_BG_INTERVAL);
 // ======== PREVISÃO DO TEMPO ========
 async function fetchWeather() {
     try {
+        const apiKey = 'AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY';
+        
+        // Chamadas para o Google Weather API via Proxy para evitar bloqueio no tablet
+        const proxyBase = 'https://tablet.alison-zago.workers.dev/?url=';
+        
+        const currentUrl = `https://weather.googleapis.com/v1/currentConditions:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}`;
+        const hourlyUrl = `https://weather.googleapis.com/v1/forecast/hours:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}&pageSize=8`;
+        const dailyUrl = `https://weather.googleapis.com/v1/forecast/days:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}&pageSize=8`;
+
+        // AQI pelo OpenMeteo via Proxy
         const apiProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-        const url = `${apiProtocol}//api.open-meteo.com/v1/forecast?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code,is_day&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo&forecast_days=8&models=best_match`;
         const aqiUrl = `${apiProtocol}//air-quality-api.open-meteo.com/v1/air-quality?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=us_aqi&timezone=America%2FSao_Paulo`;
 
-        const [response, aqiResponse] = await Promise.all([fetch(url), fetch(aqiUrl)]);
-        const data = await response.json();
-        const aqiData = await aqiResponse.json();
+        const [currResp, hourlyResp, dailyResp, aqiResp] = await Promise.all([
+            fetch(proxyBase + encodeURIComponent(currentUrl)),
+            fetch(proxyBase + encodeURIComponent(hourlyUrl)),
+            fetch(proxyBase + encodeURIComponent(dailyUrl)),
+            fetch(proxyBase + encodeURIComponent(aqiUrl))
+        ]);
+
+        const currData = await currResp.json();
+        const hourlyData = await hourlyResp.json();
+        const dailyData = await dailyResp.json();
+        const aqiData = await aqiResp.json();
 
         // Qualidade do Ar (US AQI)
         if (aqiData && aqiData.current && aqiData.current.us_aqi !== undefined) {
@@ -118,80 +135,71 @@ async function fetchWeather() {
             }
         }
 
-        // Dados atuais
-        document.getElementById('current-temp').textContent = `${Math.round(data.current.temperature_2m)}°`;
-        if (data.daily) {
-            document.getElementById('current-max').textContent = `${Math.round(data.daily.temperature_2m_max[0])}°`;
-            document.getElementById('current-min').textContent = `${Math.round(data.daily.temperature_2m_min[0])}°`;
-        }
-        document.getElementById('current-humidity').textContent = `${data.current.relative_humidity_2m}%`;
-        document.getElementById('current-wind').textContent = `${Math.round(data.current.wind_speed_10m)}`;
-        // Chance de chuva atual (vamos pegar da primeira hora próxima no forecast horário)
-
-        const currentHour = new Date().getHours();
-        let currentPrecipProb = 0;
-
-        // Horas futuras
-        const hourlyContainer = document.getElementById('hourly-forecast');
-        let hourlyHtml = '';
-
-        // A API retorna as 24h do dia em diante. Precisamos achar a hora atual.
-        const times = data.hourly.time;
-        const nowIso = new Date().toISOString().substring(0, 14) + "00"; // aproximando a hora
-        let startIndex = 0;
-
-        for (let i = 0; i < times.length; i++) {
-            const tDate = new Date(times[i]);
-            if (tDate.getHours() >= currentHour && tDate.getDate() === new Date().getDate()) {
-                startIndex = i;
-                break;
+        // Dados atuais (Google)
+        if (currData && currData.temperature) {
+            document.getElementById('current-temp').textContent = `${Math.round(currData.temperature.degrees)}°`;
+            document.getElementById('current-humidity').textContent = `${currData.relativeHumidity || 0}%`;
+            document.getElementById('current-wind').textContent = `${currData.wind && currData.wind.speed ? Math.round(currData.wind.speed.value) : 0}`;
+            
+            // max/min do dia atual
+            if (dailyData && dailyData.forecastDays && dailyData.forecastDays.length > 0) {
+                document.getElementById('current-max').textContent = `${Math.round(dailyData.forecastDays[0].maxTemperature.degrees)}°`;
+                document.getElementById('current-min').textContent = `${Math.round(dailyData.forecastDays[0].minTemperature.degrees)}°`;
             }
+            
+            // Chance de chuva atual
+            const precipPercent = (currData.precipitation && currData.precipitation.probability) ? currData.precipitation.probability.percent : 0;
+            document.getElementById('current-rain').textContent = `${precipPercent}%`;
         }
 
-        currentPrecipProb = data.hourly.precipitation_probability[startIndex] || 0;
-        document.getElementById('current-rain').textContent = `${currentPrecipProb}%`;
+        // Horas futuras (Google)
+        const hourlyContainer = document.getElementById('hourly-forecast');
+        if (hourlyContainer && hourlyData && hourlyData.forecastHours) {
+            let hourlyHtml = '';
+            const hoursList = hourlyData.forecastHours;
+            for (let i = 0; i < hoursList.length; i++) {
+                const hData = hoursList[i];
+                // Formato retornado: '2026-09-17T15:00:00Z'
+                const hourDate = new Date(hData.interval.startTime);
+                const hStr = String(hourDate.getHours()).padStart(2, '0') + ':00';
+                const temp = Math.round(hData.temperature.degrees);
+                const rainProb = (hData.precipitation && hData.precipitation.probability) ? hData.precipitation.probability.percent : 0;
+                const windSpeed = hData.wind && hData.wind.speed ? Math.round(hData.wind.speed.value) : 0;
 
-        // Proximas 8 horas
-        for (let i = startIndex; i < startIndex + 8; i++) {
-            if (i >= times.length) break;
-            const hourDate = new Date(times[i]);
-            const h = String(hourDate.getHours()).padStart(2, '0') + ':00';
-            const temp = Math.round(data.hourly.temperature_2m[i]);
-            const rainProb = data.hourly.precipitation_probability[i];
-            const windSpeed = Math.round(data.hourly.wind_speed_10m[i]);
-
-            hourlyHtml += `
-                <div class="hourly-item">
-                    <span class="hourly-time">${h}</span>
-                    <span class="hourly-temp">${temp}°</span>
-                    <span style="font-size: 0.7rem; color: var(--text-secondary);"><i class="ph ph-drop"></i> ${rainProb}%</span>
-                    <span style="font-size: 0.7rem; color: var(--text-secondary);"><i class="ph ph-wind"></i> ${windSpeed} <span style="font-size: 0.5rem;">km</span></span>
-                </div>
-            `;
+                hourlyHtml += `
+                    <div class="hourly-item">
+                        <span class="hourly-time">${hStr}</span>
+                        <span class="hourly-temp">${temp}°</span>
+                        <span style="font-size: 0.7rem; color: var(--text-secondary);"><i class="ph ph-drop"></i> ${rainProb}%</span>
+                        <span style="font-size: 0.7rem; color: var(--text-secondary);"><i class="ph ph-wind"></i> ${windSpeed} <span style="font-size: 0.5rem;">km</span></span>
+                    </div>
+                `;
+            }
+            hourlyContainer.innerHTML = hourlyHtml;
         }
 
-        hourlyContainer.innerHTML = hourlyHtml;
-
-        // Proximos Dias (Daily Forecast)
+        // Proximos Dias (Google Daily Forecast)
         const dailyContainer = document.getElementById('daily-forecast');
-        if (dailyContainer && data.daily) {
+        if (dailyContainer && dailyData && dailyData.forecastDays) {
             let dailyHtml = '';
             const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
-            // Começa de i = 1 para pegar o dia seguinte em diante. Pega próximos 7 dias.
-            for (let i = 1; i <= 7; i++) {
-                if (i >= data.daily.time.length) break;
+            // Começa de i = 1 para pegar o dia seguinte em diante
+            for (let i = 1; i < dailyData.forecastDays.length; i++) {
+                const dData = dailyData.forecastDays[i];
+                
+                const dDate = new Date(dData.displayDate.year, dData.displayDate.month - 1, dData.displayDate.day);
+                const dayName = i === 1 ? 'Amanhã' : dayNames[dDate.getDay()];
+                const dayPadded = String(dDate.getDate()).padStart(2, '0');
+                const monthPadded = String(dDate.getMonth() + 1).padStart(2, '0');
 
-                // Tratar timezone para pegar dia da semana correto local
-                const [year, month, day] = data.daily.time[i].split('-');
-                const dayDate = new Date(year, month - 1, day);
-                const dayName = dayNames[dayDate.getDay()];
-                const dayPadded = String(dayDate.getDate()).padStart(2, '0');
-                const monthPadded = String(dayDate.getMonth() + 1).padStart(2, '0');
-
-                const tMax = Math.round(data.daily.temperature_2m_max[i]);
-                const tMin = Math.round(data.daily.temperature_2m_min[i]);
-                const pProb = data.daily.precipitation_probability_max[i];
+                const tMax = Math.round(dData.maxTemperature.degrees);
+                const tMin = Math.round(dData.minTemperature.degrees);
+                
+                // Pegar maior probabilidade do dia ou noite
+                const rainDay = (dData.daytimeForecast && dData.daytimeForecast.precipitation && dData.daytimeForecast.precipitation.probability) ? dData.daytimeForecast.precipitation.probability.percent : 0;
+                const rainNight = (dData.nighttimeForecast && dData.nighttimeForecast.precipitation && dData.nighttimeForecast.precipitation.probability) ? dData.nighttimeForecast.precipitation.probability.percent : 0;
+                const pProb = Math.max(rainDay, rainNight);
 
                 dailyHtml += `
                     <div class="daily-item">
@@ -214,7 +222,7 @@ async function fetchWeather() {
         // Mudar o título para indicar erro
         const locTitle = document.getElementById('location-title');
         if (locTitle) {
-            locTitle.innerHTML = '<i class="ph ph-warning-circle"></i> Erro ao conectar ao Meteo';
+            locTitle.innerHTML = '<i class="ph ph-warning-circle"></i> Erro ao conectar ao Clima';
             locTitle.style.color = '#ef4444';
             locTitle.style.opacity = '0.8';
         }
@@ -816,8 +824,14 @@ window.initGoogleMapsTraffic = async function () {
                 trafficModel: 'bestguess'
             }
         }, (response, status) => {
-            if (status !== 'OK') {
-                console.error("Distance Matrix Error:", status);
+            if (status !== 'OK' || !response || !response.rows || !response.rows[0]) {
+                console.error("Distance Matrix Error:", status, response);
+                destinations.forEach(dest => {
+                    const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
+                    if (oldStatusEl) { oldStatusEl.textContent = 'Erro API'; oldStatusEl.style.color = '#ef4444'; }
+                    const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
+                    if (newStatusEl) { newStatusEl.textContent = 'Erro API'; newStatusEl.style.color = '#ef4444'; }
+                });
                 return;
             }
 
@@ -909,38 +923,37 @@ window.initGoogleMapsTraffic = async function () {
     fetchTraffic();
     setInterval(fetchTraffic, 15 * 60 * 1000);
 }
+
 initGoogleMapsTraffic();
 
-// ======== TESTE GOOGLE WEATHER ========
-window.testGoogleWeather = async function () {
-    const apiKey = 'AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY';
-    const proxyBase = 'https://tablet.alison-zago.workers.dev/?url=';
-    const url = proxyBase + encodeURIComponent('https://weather.googleapis.com/v1/currentConditions:lookup?location.latitude=-23.524098&location.longitude=-46.647863&key=' + apiKey);
 
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
 
-        if (data.temperature) {
-            document.getElementById('gweather-temp').textContent = Math.round(data.temperature.degrees) + '°';
+// ======== INIT DASHBOARD ========
+// Relógio
+updateClock();
+setInterval(updateClock, 1000);
 
-            const desc = (data.weatherCondition && data.weatherCondition.description && data.weatherCondition.description.text) ? data.weatherCondition.description.text : 'Condição atualizada';
-            document.getElementById('gweather-desc').textContent = desc;
+// Fundo
+changeBackground();
+setInterval(changeBackground, CHANGE_BG_INTERVAL);
 
-            const rain = (data.precipitation && data.precipitation.probability && data.precipitation.probability.percent) ? data.precipitation.probability.percent : 0;
-            const umi = data.relativeHumidity || 0;
-            document.getElementById('gweather-extra').textContent = 'Chuva: ' + rain + '% | Umi: ' + umi + '%';
+// Clima
+fetchWeather();
+setInterval(fetchWeather, UPDATE_WEATHER_INTERVAL);
 
-            const iconEl = document.getElementById('gweather-icon');
-            const type = (data.weatherCondition && data.weatherCondition.type) ? data.weatherCondition.type : '';
-            if (type.includes('RAIN') || type.includes('STORM')) iconEl.className = 'ph ph-cloud-rain';
-            else if (type.includes('CLOUDY')) iconEl.className = 'ph ph-cloud';
-            else iconEl.className = 'ph ph-sun';
-        }
-    } catch (e) {
-        console.error('Google Weather API Error: ', e);
-        document.getElementById('gweather-desc').textContent = 'Erro ao buscar clima';
-    }
+// Notícias
+if(typeof fetchAllNews === 'function') {
+    fetchAllNews();
+    setInterval(fetchAllNews, 30 * 60 * 1000);
 }
-testGoogleWeather();
-setInterval(testGoogleWeather, 15 * 60 * 1000);
+
+// Calendário
+if(typeof renderCalendar === 'function') {
+    renderCalendar();
+    setInterval(renderCalendar, 60 * 60 * 1000);
+}
+
+// Bateria e Modo Noturno
+initBattery();
+checkNightMode();
+setInterval(checkNightMode, 60 * 60 * 1000);
