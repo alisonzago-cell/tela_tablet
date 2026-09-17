@@ -1,4 +1,4 @@
-// Configurações
+﻿// Configurações
 const UPDATE_WEATHER_INTERVAL = 30 * 60 * 1000; // 30 min
 const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
 const LATITUDE = -23.5276;
@@ -92,10 +92,10 @@ setInterval(changeBackground, CHANGE_BG_INTERVAL);
 async function fetchWeather() {
     try {
         const apiKey = 'AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY';
-        
+
         // Chamadas para o Google Weather API via Proxy para evitar bloqueio no tablet
         const proxyBase = 'https://tablet.alison-zago.workers.dev/?url=';
-        
+
         const currentUrl = `https://weather.googleapis.com/v1/currentConditions:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}`;
         const hourlyUrl = `https://weather.googleapis.com/v1/forecast/hours:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}&pageSize=8`;
         const dailyUrl = `https://weather.googleapis.com/v1/forecast/days:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}&pageSize=8`;
@@ -140,13 +140,13 @@ async function fetchWeather() {
             document.getElementById('current-temp').textContent = `${Math.round(currData.temperature.degrees)}°`;
             document.getElementById('current-humidity').textContent = `${currData.relativeHumidity || 0}%`;
             document.getElementById('current-wind').textContent = `${currData.wind && currData.wind.speed ? Math.round(currData.wind.speed.value) : 0}`;
-            
+
             // max/min do dia atual
             if (dailyData && dailyData.forecastDays && dailyData.forecastDays.length > 0) {
                 document.getElementById('current-max').textContent = `${Math.round(dailyData.forecastDays[0].maxTemperature.degrees)}°`;
                 document.getElementById('current-min').textContent = `${Math.round(dailyData.forecastDays[0].minTemperature.degrees)}°`;
             }
-            
+
             // Chance de chuva atual
             const precipPercent = (currData.precipitation && currData.precipitation.probability) ? currData.precipitation.probability.percent : 0;
             document.getElementById('current-rain').textContent = `${precipPercent}%`;
@@ -187,7 +187,7 @@ async function fetchWeather() {
             // Começa de i = 1 para pegar o dia seguinte em diante
             for (let i = 1; i < dailyData.forecastDays.length; i++) {
                 const dData = dailyData.forecastDays[i];
-                
+
                 const dDate = new Date(dData.displayDate.year, dData.displayDate.month - 1, dData.displayDate.day);
                 const dayName = i === 1 ? 'Amanhã' : dayNames[dDate.getDay()];
                 const dayPadded = String(dDate.getDate()).padStart(2, '0');
@@ -195,7 +195,7 @@ async function fetchWeather() {
 
                 const tMax = Math.round(dData.maxTemperature.degrees);
                 const tMin = Math.round(dData.minTemperature.degrees);
-                
+
                 // Pegar maior probabilidade do dia ou noite
                 const rainDay = (dData.daytimeForecast && dData.daytimeForecast.precipitation && dData.daytimeForecast.precipitation.probability) ? dData.daytimeForecast.precipitation.probability.percent : 0;
                 const rainNight = (dData.nighttimeForecast && dData.nighttimeForecast.precipitation && dData.nighttimeForecast.precipitation.probability) ? dData.nighttimeForecast.precipitation.probability.percent : 0;
@@ -675,6 +675,15 @@ function toggleFullscreen() {
 }
 
 // ======== BATERIA ========
+const WEBHOOK_ON = 'https://sequematic.com/trigger-custom-webhook/6B26083F75/170653';
+const WEBHOOK_OFF = 'https://sequematic.com/trigger-custom-webhook/6B26083F75/170655';
+
+// LIMITES DA BATERIA PARA AUTOMAÇÃO (Altere aqui para testar)
+const BATTERY_MIN = 42; // Liga a tomada se a bateria chegar neste valor ou menos
+const BATTERY_MAX = 80; // Desliga a tomada se a bateria chegar neste valor ou mais
+
+let webhookCooldown = false;
+
 async function initBattery() {
     if ('getBattery' in navigator) {
         try {
@@ -697,10 +706,40 @@ async function initBattery() {
                     else if (level > 20) iconEl.className = 'ph ph-battery-medium';
                     else iconEl.className = 'ph ph-battery-low';
                 }
+
+                checkBatteryAutomation(level, battery.charging);
             }
+
+            function checkBatteryAutomation(level, isCharging) {
+                if (webhookCooldown) return;
+
+                if (level <= BATTERY_MIN && !isCharging) {
+                    console.log(`Bateria baixa (<= ${BATTERY_MIN}%) e descarregando. Ligando tomada...`);
+                    triggerAutomation(WEBHOOK_ON);
+                } else if (level >= BATTERY_MAX && isCharging) {
+                    console.log(`Bateria alta (>= ${BATTERY_MAX}%) e carregando. Desligando tomada...`);
+                    triggerAutomation(WEBHOOK_OFF);
+                }
+            }
+
+            function triggerAutomation(url) {
+                webhookCooldown = true;
+                fetch(url, { mode: 'no-cors' })
+                    .then(() => console.log('Automação de bateria disparada:', url))
+                    .catch(err => console.error('Erro na automação de bateria:', err))
+                    .finally(() => {
+                        // Cooldown de 2 minutos para evitar disparos em massa e dar tempo do status atualizar
+                        setTimeout(() => { webhookCooldown = false; }, 120000);
+                    });
+            }
+
             updateBattery();
             battery.addEventListener('levelchange', updateBattery);
             battery.addEventListener('chargingchange', updateBattery);
+
+            // Verificação redundante a cada 5 minutos
+            setInterval(updateBattery, 5 * 60 * 1000);
+
         } catch (e) { console.error('Battery API error', e); }
     }
 }
@@ -934,13 +973,13 @@ fetchWeather();
 setInterval(fetchWeather, UPDATE_WEATHER_INTERVAL);
 
 // Notícias
-if(typeof fetchAllNews === 'function') {
+if (typeof fetchAllNews === 'function') {
     fetchAllNews();
     setInterval(fetchAllNews, 30 * 60 * 1000);
 }
 
 // Calendário
-if(typeof renderCalendar === 'function') {
+if (typeof renderCalendar === 'function') {
     renderCalendar();
     setInterval(renderCalendar, 60 * 60 * 1000);
 }
