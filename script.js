@@ -801,33 +801,17 @@ window.initGoogleMapsTraffic = async function () {
     ];
 
     function fetchTraffic() {
-        if (!window.google || !window.google.maps) {
-            console.error("Google Maps JS API não carregou a tempo.");
-            return;
-        }
 
-        const service = new google.maps.DistanceMatrixService();
 
-        const destCoords = destinations.map(d => {
-            const [lat, lng] = d.coords.split(',');
-            return new google.maps.LatLng(parseFloat(lat), parseFloat(lng));
-        });
-        const [origLat, origLng] = origin.split(',');
-        const origLatLng = new google.maps.LatLng(parseFloat(origLat), parseFloat(origLng));
+        const originsParam = encodeURIComponent(origin);
+        const destinationsParam = encodeURIComponent(destinations.map(d => d.coords).join('|'));
+        const workerUrl = `https://tablet.alison-zago.workers.dev/traffic?origins=${originsParam}&destinations=${destinationsParam}`;
 
-        service.getDistanceMatrix({
-            origins: [origLatLng],
-            destinations: destCoords,
-            travelMode: google.maps.TravelMode.DRIVING,
-            drivingOptions: {
-                departureTime: new Date(),  // For traffic info
-                trafficModel: 'bestguess'
-            }
-        }, (response, status) => {
-            try {
-                console.log("Status API Google Maps:", status);
-                if (status !== 'OK' || !response || !response.rows || !response.rows[0]) {
-                    console.error("Distance Matrix Error:", status, response);
+        fetch(workerUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status !== 'OK' || !data.rows || !data.rows[0]) {
+                    console.error("Distance Matrix Error:", data.status, data);
                     destinations.forEach(dest => {
                         const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
                         if (oldStatusEl) { oldStatusEl.textContent = 'Erro API'; oldStatusEl.style.color = '#ef4444'; }
@@ -837,8 +821,7 @@ window.initGoogleMapsTraffic = async function () {
                     return;
                 }
 
-                const elements = response.rows[0].elements;
-                console.log("Elements retornados:", elements.length);
+                const elements = data.rows[0].elements;
 
                 destinations.forEach((dest, index) => {
                     const element = elements[index];
@@ -925,10 +908,10 @@ window.initGoogleMapsTraffic = async function () {
                         if (newTimeEl) newTimeEl.style.color = iconColor;
                     }
                 });
-            } catch (err) {
-                console.error("ERRO CATCH NO CALLBACK:", err.message, err.stack);
-            }
-        });
+            })
+            .catch(err => {
+                console.error("ERRO FETCH TRÂNSITO WORKER:", err.message);
+            });
     }
 
     fetchTraffic();
@@ -966,3 +949,6 @@ if(typeof renderCalendar === 'function') {
 initBattery();
 checkNightMode();
 setInterval(checkNightMode, 60 * 60 * 1000);
+
+// Inicia API do Trânsito pelo Worker
+initGoogleMapsTraffic();
