@@ -48,19 +48,24 @@
         <section class="panel traffic-panel glass" style="padding: 0; display: flex; flex-direction: column;">
             <div class="panel-header"
                 style="padding: 12px 12px 0 12px; margin-bottom: 0px; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="font-size: 1.0rem; margin-bottom: 0;"><i class="ph ph-car"></i> Trânsito</h3>
+                <h3 onclick="fetchTraffic()" title="Atualizar Trânsito"
+                    style="font-size: 1.0rem; margin-bottom: 0; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <i class="ph ph-car"></i> Trânsito
+                    <i class="ph ph-arrows-clockwise" id="traffic-refresh-icon"
+                        style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.5s;"></i>
+                </h3>
             </div>
             <div style="flex-grow: 1; overflow: hidden; position: relative;">
                 <div id="traffic-slider"
                     style="display: flex; width: 200%; height: 100%; transition: transform 0.4s ease-in-out; transform: translateX(0%);">
 
                     <!-- Página 1 -->
-                    <!-- Para alterar o espaçamento vertical entre os painéis internos, mude o valor de "gap: 4px;" na linha abaixo -->
+                    <!-- Compatibilidade com navegadores antigos: gap removido, usando margin-bottom nos itens -->
                     <div
-                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center; gap: 8px;">
+                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center;">
                         <!-- Bloquinho TV -->
                         <div
-                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 5px;">
                             <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">TVC <span
                                     id="tf-time-1" style="color: var(--text-secondary);">--</span></div>
                             <div id="tf-status-1"
@@ -71,7 +76,7 @@
                         </div>
                         <!-- Bloquinho CAL -->
                         <div
-                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 5px;">
                             <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">CAL <span
                                     id="tf-time-2" style="color: var(--text-secondary);">--</span></div>
                             <div id="tf-status-2"
@@ -94,12 +99,12 @@
                     </div>
 
                     <!-- Página 2 -->
-                    <!-- Para alterar o espaçamento vertical entre os painéis internos, mude o valor de "gap: 4px;" na linha abaixo -->
+                    <!-- Compatibilidade com navegadores antigos: gap removido, usando margin-bottom nos itens -->
                     <div
-                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
+                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center;">
                         <!-- Bloquinho 4 -->
                         <div
-                            style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 0px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 0px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 5px;">
                             <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">TV 2 <span
                                     id="tf-time-4" style="color: var(--text-secondary);">--</span></div>
                             <div id="tf-status-4"
@@ -110,7 +115,7 @@
                         </div>
                         <!-- Bloquinho 5 -->
                         <div
-                            style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 5px;">
                             <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">CAL 2 <span
                                     id="tf-time-5" style="color: var(--text-secondary);">--</span></div>
                             <div id="tf-status-5"
@@ -279,6 +284,11 @@
                     <i class="ph ph-image" style="font-size: 1.4rem;"></i>
                 </button>
                 <button class="timer-btn"
+                    style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                    onclick="if(window.vConsole) window.vConsole.show();" title="Console de Erros">
+                    <i class="ph ph-terminal" style="font-size: 1.4rem;"></i>
+                </button>
+                <button class="timer-btn"
                     style="flex: 1; margin: 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
                     onclick="toggleNightMode()" title="Sleep Mode">
                     <i class="ph ph-moon" style="font-size: 1.4rem;"></i>
@@ -312,7 +322,13 @@
 
     <!-- Console na tela para testes no Tablet -->
     <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
-    <script>var vConsole = new window.VConsole();</script>
+    <script>
+        var vConsole = new window.VConsole();
+        // Ocultar o botão flutuante padrão do vConsole usando CSS injetado
+        const style = document.createElement('style');
+        style.innerHTML = '.vc-switch { display: none !important; }';
+        document.head.appendChild(style);
+    </script>
 </body>
 
 </html>

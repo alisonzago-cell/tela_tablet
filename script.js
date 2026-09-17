@@ -1,4 +1,4 @@
-﻿// Configurações
+// Configurações
 const UPDATE_WEATHER_INTERVAL = 30 * 60 * 1000; // 30 min
 const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
 const LATITUDE = -23.5276;
@@ -93,7 +93,8 @@ async function fetchWeather() {
     try {
         const apiKey = 'AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY';
 
-        // Chamadas para o Google Weather API via Proxy para evitar bloqueio no tablet
+        // ======== FETCH WEATHER VIA PROXY ========
+        // O proxy no Cloudflare é usado para contornar problemas de CORS e certificados SSL legados do Android 4.2.2
         const proxyBase = 'https://tablet.alison-zago.workers.dev/?url=';
 
         const currentUrl = `https://weather.googleapis.com/v1/currentConditions:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}`;
@@ -104,17 +105,22 @@ async function fetchWeather() {
         const apiProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
         const aqiUrl = `${apiProtocol}//air-quality-api.open-meteo.com/v1/air-quality?latitude=${LATITUDE}&longitude=${LONGITUDE}&current=us_aqi&timezone=America%2FSao_Paulo`;
 
-        const [currResp, hourlyResp, dailyResp, aqiResp] = await Promise.all([
-            fetch(proxyBase + encodeURIComponent(currentUrl)),
-            fetch(proxyBase + encodeURIComponent(hourlyUrl)),
-            fetch(proxyBase + encodeURIComponent(dailyUrl)),
+        // Busca simultânea das 4 APIs (Google e OpenMeteo). 
+        // O ".catch" individual garante que se uma cair (ex: AQI), o resto continua renderizando.
+        const [currData, hourlyData, dailyData, aqiData] = await Promise.all([
+            fetch(proxyBase + encodeURIComponent(currentUrl))
+                .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+                .catch(e => { console.error("Erro Google Current API:", e); return null; }),
+            fetch(proxyBase + encodeURIComponent(hourlyUrl))
+                .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+                .catch(e => { console.error("Erro Google Hourly API:", e); return null; }),
+            fetch(proxyBase + encodeURIComponent(dailyUrl))
+                .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+                .catch(e => { console.error("Erro Google Daily API:", e); return null; }),
             fetch(proxyBase + encodeURIComponent(aqiUrl))
+                .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+                .catch(e => { console.error("Erro OpenMeteo AQI API:", e); return null; })
         ]);
-
-        const currData = await currResp.json();
-        const hourlyData = await hourlyResp.json();
-        const dailyData = await dailyResp.json();
-        const aqiData = await aqiResp.json();
 
         // Qualidade do Ar (US AQI)
         if (aqiData && aqiData.current && aqiData.current.us_aqi !== undefined) {
@@ -308,11 +314,20 @@ async function fetchAllNews() {
         let allItems = [];
 
         for (const feed of RSS_FEEDS) {
+            // ======== FETCH NEWS VIA RSS2JSON ========
+            // Usamos a API pública rss2json.com para converter feeds XML (RSS) do G1/UOL em JSON puro.
+            // Isso evita a necessidade de escrevermos um parser XML complexo e resolve possíveis bloqueios de CORS.
             const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
             const response = await fetch(url);
+            
+            if (!response.ok) {
+                console.warn(`Aviso: Falha ao carregar o feed ${feed.source} (HTTP ${response.status})`);
+                continue; // Pula este feed e tenta o próximo
+            }
+            
             const data = await response.json();
 
-            if (data.status === 'ok') {
+            if (data.status === 'ok' && data.items) {
                 const items = data.items.slice(0, 10); // 10 de cada
                 items.forEach(item => {
                     if (item.title && item.title.trim().length >= 40) {
@@ -323,7 +338,14 @@ async function fetchAllNews() {
                         }));
                     }
                 });
+            } else {
+                console.warn(`Aviso: O feed ${feed.source} retornou um formato inesperado.`, data);
             }
+        }
+
+        if (allItems.length === 0) {
+            newsList.innerHTML = '<div style="text-align: center; color: #ef4444;"><i class="ph ph-warning-circle" style="font-size: 1.5rem;"></i><br>Nenhuma notícia encontrada no momento.</div>';
+            return;
         }
 
         shuffleArray(allItems);
@@ -360,7 +382,7 @@ async function fetchAllNews() {
         globalNewsItems = allItems;
 
     } catch (error) {
-        console.error("Erro ao buscar notícias: ", error);
+        console.error("ERRO CRÍTICO NAS NOTÍCIAS (Falha no Proxy ou rss2json): ", error);
         newsList.innerHTML = ''; // Limpar aviso
 
         for (let i = 0; i < 6; i++) {
@@ -372,7 +394,7 @@ async function fetchAllNews() {
                     <span class="news-tag" style="background: #ef4444; color: white;"><i class="ph ph-warning-circle"></i> OFF</span>
                     <span class="news-source" style="color: #ef4444;">Erro na Conexão</span>
                 </div>
-                <div class="news-title">Notícia Fictícia para Teste de Diagramação - Manchete de Exemplo que Ocupa Mais de Uma Linha para Testar o Espaçamento e a Rolagem Automática ${i + 1}</div>
+                <div class="news-title">Notícia Fictícia para Teste de Diagramação - Falha ao buscar dados oficiais. ${i + 1}</div>
             `;
             newsList.appendChild(el);
         }
@@ -733,14 +755,14 @@ async function initBattery() {
                 }, 4000); // Fica 4 segundos na tela
             }
 
-            function checkBatteryAutomation(level, isCharging) {
+            function checkBatteryAutomation(level) {
                 if (webhookCooldown) return;
 
-                if (level <= BATTERY_MIN && !isCharging) {
-                    console.log(`Bateria baixa (<= ${BATTERY_MIN}%) e descarregando. Ligando tomada...`);
+                if (level <= BATTERY_MIN) {
+                    console.log(`Bateria baixa (<= ${BATTERY_MIN}%). Ligando tomada...`);
                     triggerAutomation(WEBHOOK_ON);
-                } else if (level >= BATTERY_MAX && isCharging) {
-                    console.log(`Bateria alta (>= ${BATTERY_MAX}%) e carregando. Desligando tomada...`);
+                } else if (level >= BATTERY_MAX) {
+                    console.log(`Bateria alta (>= ${BATTERY_MAX}%). Desligando tomada...`);
                     triggerAutomation(WEBHOOK_OFF);
                 }
             }
@@ -751,7 +773,7 @@ async function initBattery() {
                     .then(() => console.log('Automação de bateria disparada:', url))
                     .catch(err => console.error('Erro na automação de bateria:', err))
                     .finally(() => {
-                        // Cooldown de 2 minutos para evitar disparos em massa e dar tempo do status atualizar
+                        // Cooldown de 2 minutos para evitar disparos colados
                         setTimeout(() => { webhookCooldown = false; }, 120000);
                     });
             }
@@ -760,8 +782,8 @@ async function initBattery() {
             battery.addEventListener('levelchange', updateBattery);
             battery.addEventListener('chargingchange', updateBattery);
 
-            // Verificação redundante a cada 5 minutos
-            setInterval(updateBattery, 5 * 60 * 1000);
+            // Verificação redundante a cada 2 minutos (reenvia o sinal se a bateria não tiver saído do limite)
+            setInterval(updateBattery, 2 * 60 * 1000);
 
         } catch (e) { console.error('Battery API error', e); }
     }
@@ -862,18 +884,32 @@ window.initGoogleMapsTraffic = async function () {
         { id: 6, coords: '-23.522546,-46.663235' }  // Temporário PIT 2
     ];
 
-    function fetchTraffic() {
-
+    // ======== FETCH TRAFFIC VIA PROXY ========
+    // Fazemos a chamada para o nosso Worker no Cloudflare que atua como um Proxy Reverso.
+    // Isso é necessário porque o tablet (Android 4.2.2 / Chrome 70) é incompatível com o SDK moderno do Google Maps.
+    // O Worker faz a chamada Rest API para o Google, contorna problemas de CORS e devolve o JSON limpo.
+    window.fetchTraffic = function() {
+        const refreshIcon = document.getElementById('traffic-refresh-icon');
+        if (refreshIcon) {
+            refreshIcon.style.transform = 'rotate(180deg)';
+        }
 
         const originsParam = encodeURIComponent(origin);
         const destinationsParam = encodeURIComponent(destinations.map(d => d.coords).join('|'));
         const workerUrl = `https://tablet.alison-zago.workers.dev/traffic?origins=${originsParam}&destinations=${destinationsParam}`;
 
         fetch(workerUrl)
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+                return res.json();
+            })
             .then(data => {
+                if (refreshIcon) {
+                    setTimeout(() => refreshIcon.style.transform = 'rotate(0deg)', 500);
+                }
+
                 if (data.status !== 'OK' || !data.rows || !data.rows[0]) {
-                    console.error("Distance Matrix Error:", data.status, data);
+                    console.error("Distance Matrix API retornou erro ou payload vazio:", data);
                     destinations.forEach(dest => {
                         const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
                         if (oldStatusEl) { oldStatusEl.textContent = 'Erro API'; oldStatusEl.style.color = '#ef4444'; }
@@ -972,7 +1008,19 @@ window.initGoogleMapsTraffic = async function () {
                 });
             })
             .catch(err => {
-                console.error("ERRO FETCH TRÂNSITO WORKER:", err.message);
+                const refreshIcon = document.getElementById('traffic-refresh-icon');
+                if (refreshIcon) refreshIcon.style.transform = 'rotate(0deg)';
+                
+                console.error("ERRO CRÍTICO NO TRÂNSITO:", err.message);
+                
+                // Exibe fallback visual para que o usuário saiba que houve falha (ex: worker fora do ar)
+                destinations.forEach(dest => {
+                    const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
+                    if (newStatusEl) {
+                        newStatusEl.textContent = 'Falha Conexão';
+                        newStatusEl.style.color = '#ef4444';
+                    }
+                });
             });
     }
 
