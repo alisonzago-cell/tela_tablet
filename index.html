@@ -28,10 +28,11 @@
 
         <!-- Linha 1, Col 2: Bloco de Notícias -->
         <section class="panel news-panel glass">
-            <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h3><i class="ph ph-newspaper"></i> Últimas Notícias</h3>
+            <div class="panel-header"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <h3 style="font-size: 1.0rem; margin-bottom: 10;"><i class="ph ph-newspaper"></i> Últimas Notícias</h3>
                 <div id="battery-status"
-                    style="font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;"
+                    style="font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 2px;"
                     title="Bateria">
                     <i class="ph ph-battery-full" id="battery-icon"></i> <span id="battery-level">--%</span>
                 </div>
@@ -39,6 +40,95 @@
             <div class="news-list-container" id="news-list-container">
                 <div class="news-list" id="news-list">
                     <div style="text-align: center; color: var(--text-secondary);">Carregando notícias...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Linha 1, Col 3: Bloco de Trânsito Condensado -->
+        <section class="panel traffic-panel glass" style="padding: 0; display: flex; flex-direction: column;">
+            <div class="panel-header"
+                style="padding: 12px 12px 0 12px; margin-bottom: 0px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 1.0rem; margin-bottom: 0;"><i class="ph ph-car"></i> Trânsito</h3>
+            </div>
+            <div style="flex-grow: 1; overflow: hidden; position: relative;">
+                <div id="traffic-slider"
+                    style="display: flex; width: 200%; height: 100%; transition: transform 0.4s ease-in-out; transform: translateX(0%);">
+
+                    <!-- Página 1 -->
+                    <div
+                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
+                        <!-- Bloquinho TV -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">TVC <span
+                                    id="tf-time-1" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-1"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">+-- min</div>
+                            <div id="tf-eta-1"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 1px;">ETA: --:--
+                            </div>
+                        </div>
+                        <!-- Bloquinho CAL -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">CAL <span
+                                    id="tf-time-2" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-2"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">+-- min</div>
+                            <div id="tf-eta-2"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 1px;">ETA: --:--
+                            </div>
+                        </div>
+                        <!-- Bloquinho PIT -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">PIT <span
+                                    id="tf-time-3" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-3"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">+-- min</div>
+                            <div id="tf-eta-3"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 1px;">ETA: --:--
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Página 2 -->
+                    <div
+                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
+                        <!-- Bloquinho 4 -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 0px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">TV 2 <span
+                                    id="tf-time-4" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-4"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0px;">+-- min</div>
+                            <div id="tf-eta-4"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 0px;">ETA: --:--
+                            </div>
+                        </div>
+                        <!-- Bloquinho 5 -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">CAL 2 <span
+                                    id="tf-time-5" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-5"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">+-- min</div>
+                            <div id="tf-eta-5"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 1px;">ETA: --:--
+                            </div>
+                        </div>
+                        <!-- Bloquinho 6 -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">PIT 2 <span
+                                    id="tf-time-6" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-6"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">+-- min</div>
+                            <div id="tf-eta-6"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 1px;">ETA: --:--
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -95,7 +185,7 @@
 
                 <div class="panel-header"
                     style="padding: 16px 16px 0 16px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
-                    <h3 id="calendar-timer-title" style="font-size: 1.3rem; margin-bottom: 0;"><i
+                    <h3 id="calendar-timer-title" style="font-size: 1.15rem; margin-bottom: 0;"><i
                             class="ph ph-calendar"></i> Calendário</h3>
                     <div class="slider-controls"
                         style="cursor: pointer; display: flex; gap: 4px; color: var(--text-secondary);"
@@ -167,8 +257,6 @@
                             </div>
                         </div>
                     </div>
-
-                </div>
             </section>
 
             <section class="panel glass"
@@ -207,71 +295,30 @@
         </div>
     </div>
 
-    <!-- TESTE DE TRÂNSITO (MOCK GENÉRICO) -->
-    <div style="width: 1024px; margin: 16px auto; display: flex; flex-direction: column; gap: 8px;">
-        <!-- Rota 1: Cenno Sbrigui -->
-        <div style="padding: 12px 20px; background: rgba(0, 0, 0, 0.4); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <i class="ph ph-car" id="traffic-icon-1" style="font-size: 2.2rem; color: #fbbf24;"></i>
-                <div>
-                    <div style="font-size: 1.2rem; font-weight: 700;">Jaraguá <i class="ph ph-arrow-right"></i> Água Branca (Cenno Sbrigui, 378)</div>
-                    <div id="traffic-status-1" style="font-size: 0.9rem; color: var(--text-secondary);">Calculando trânsito...</div>
-                </div>
-            </div>
-            <div style="text-align: right;">
-                <div id="traffic-time-1" style="font-size: 1.8rem; font-weight: 800; color: #ef4444;">-- min</div>
-                <div id="traffic-arrival-1" style="font-size: 0.9rem; color: var(--text-secondary);">Chegada est. --:--</div>
-            </div>
-        </div>
-        
-        <!-- Rota 2: Moema -->
-        <div style="padding: 12px 20px; background: rgba(0, 0, 0, 0.4); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <i class="ph ph-car" id="traffic-icon-2" style="font-size: 2.2rem; color: #fbbf24;"></i>
-                <div>
-                    <div style="font-size: 1.2rem; font-weight: 700;">Jaraguá <i class="ph ph-arrow-right"></i> Moema (Chanés, 205)</div>
-                    <div id="traffic-status-2" style="font-size: 0.9rem; color: var(--text-secondary);">Calculando trânsito...</div>
-                </div>
-            </div>
-            <div style="text-align: right;">
-                <div id="traffic-time-2" style="font-size: 1.8rem; font-weight: 800; color: #ef4444;">-- min</div>
-                <div id="traffic-arrival-2" style="font-size: 0.9rem; color: var(--text-secondary);">Chegada est. --:--</div>
-            </div>
-        </div>
 
-        <!-- Rota 3: Barra Funda -->
-        <div style="padding: 12px 20px; background: rgba(0, 0, 0, 0.4); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <i class="ph ph-car" id="traffic-icon-3" style="font-size: 2.2rem; color: #fbbf24;"></i>
-                <div>
-                    <div style="font-size: 1.2rem; font-weight: 700;">Jaraguá <i class="ph ph-arrow-right"></i> Barra Funda (J. M. de Macedo, 329)</div>
-                    <div id="traffic-status-3" style="font-size: 0.9rem; color: var(--text-secondary);">Calculando trânsito...</div>
-                </div>
-            </div>
-            <div style="text-align: right;">
-                <div id="traffic-time-3" style="font-size: 1.8rem; font-weight: 800; color: #ef4444;">-- min</div>
-                <div id="traffic-arrival-3" style="font-size: 0.9rem; color: var(--text-secondary);">Chegada est. --:--</div>
-            </div>
-        </div>
-        
-        <div style="text-align: right; font-size: 0.8rem; color: rgba(255,255,255,0.3); padding-right: 8px; margin-top: -4px;">Dados via Google Maps</div>
-
-        <!-- TESTE GOOGLE WEATHER -->
-        <div style="margin-top: 16px; padding: 12px 20px; background: rgba(0, 0, 0, 0.4); border-radius: 12px; border: 1px dashed rgba(16, 185, 129, 0.5); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between;">
+    <!-- TESTE GOOGLE WEATHER -->
+    <div style="width: 224px; margin: 16px auto; display: flex; flex-direction: column; gap: 8px;">
+        <div
+            style="padding: 12px 20px; background: rgba(0, 0, 0, 0.4); border-radius: 12px; border: 1px dashed rgba(16, 185, 129, 0.5); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 16px;">
                 <i class="ph ph-cloud-sun" id="gweather-icon" style="font-size: 2.2rem; color: #10b981;"></i>
                 <div>
                     <div style="font-size: 1.2rem; font-weight: 700; color: #10b981;">Teste: Google Weather API</div>
-                    <div id="gweather-desc" style="font-size: 0.9rem; color: var(--text-secondary);">Buscando clima atual...</div>
+                    <div id="gweather-desc" style="font-size: 0.9rem; color: var(--text-secondary);">Buscando clima
+                        atual...</div>
                 </div>
             </div>
             <div style="text-align: right;">
                 <div id="gweather-temp" style="font-size: 1.8rem; font-weight: 800; color: #fff;">--°</div>
-                <div id="gweather-extra" style="font-size: 0.9rem; color: var(--text-secondary);">Chuva: --% | Umi: --%</div>
+                <div id="gweather-extra" style="font-size: 0.9rem; color: var(--text-secondary);">Chuva: --% | Umi: --%
+                </div>
             </div>
         </div>
     </div>
     <div id="night-mode-overlay"></div>
+
+    <!-- Google Maps JS API (necessário para suportar restrições de website/referer) -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY"></script>
 
     <script src="script.js"></script>
 

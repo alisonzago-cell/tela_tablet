@@ -759,6 +759,20 @@ document.getElementById('news-modal').addEventListener('click', function (e) {
 });
 
 // ======== API DO TRÂNSITO (GOOGLE MAPS VIA PROXY) ========
+
+let isTrafficSlidePage2 = false;
+window.toggleTrafficSlider = function () {
+    const slider = document.getElementById('traffic-slider');
+    if (!slider) return;
+
+    isTrafficSlidePage2 = !isTrafficSlidePage2;
+    if (isTrafficSlidePage2) {
+        slider.style.transform = 'translateX(-50%)';
+    } else {
+        slider.style.transform = 'translateX(0)';
+    }
+}
+
 window.initGoogleMapsTraffic = async function () {
     const apiKey = 'AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY';
 
@@ -772,63 +786,124 @@ window.initGoogleMapsTraffic = async function () {
     const destinations = [
         { id: 1, coords: '-23.511595,-46.694691' }, // R. Cenno Sbrigui, 378 (Água Branca)
         { id: 2, coords: '-23.612867,-46.668438' }, // R. dos Chanés, 205 (Moema)
-        { id: 3, coords: '-23.522546,-46.663235' }  // R. Joaquim Manuel de Macedo, 329 (Barra Funda)
+        { id: 3, coords: '-23.522546,-46.663235' }, // R. Joaquim Manuel de Macedo, 329 (Barra Funda)
+        { id: 4, coords: '-23.511595,-46.694691' }, // Temporário TV 2
+        { id: 5, coords: '-23.612867,-46.668438' }, // Temporário CAL 2
+        { id: 6, coords: '-23.522546,-46.663235' }  // Temporário PIT 2
     ];
 
-    async function fetchTraffic() {
-        for (const dest of destinations) {
-            const googleUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${dest.coords}&departure_time=now&key=${apiKey}`;
-            // Envia a URL do Google Maps para o Worker do Cloudflare usando encodeURIComponent para segurança
-            const url = proxyBase + encodeURIComponent(googleUrl);
-
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.rows && data.rows[0].elements && data.rows[0].elements[0].status === "OK") {
-                    const element = data.rows[0].elements[0];
-
-                    const trafficDuration = element.duration_in_traffic ? element.duration_in_traffic.value : element.duration.value;
-                    const typicalDuration = element.duration.value;
-                    let delay = trafficDuration - typicalDuration;
-                    if (delay < 0) delay = 0;
-
-                    const timeMin = Math.round(trafficDuration / 60);
-                    document.getElementById(`traffic-time-${dest.id}`).textContent = timeMin + ' min';
-
-                    const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
-                    const arrH = String(arrivalTime.getHours()).padStart(2, '0');
-                    const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
-                    document.getElementById(`traffic-arrival-${dest.id}`).textContent = 'Chegada est. ' + arrH + ':' + arrM;
-
-                    let statusText = 'Trânsito Leve (No tempo)';
-                    let statusColor = 'var(--text-secondary)';
-                    let iconColor = '#10b981';
-
-                    if (delay > 180 && delay <= 600) {
-                        statusText = 'Trânsito Moderado (+ ' + Math.round(delay / 60) + ' min)';
-                        statusColor = '#fbbf24';
-                        iconColor = '#fbbf24';
-                    } else if (delay > 600) {
-                        statusText = 'Trânsito Pesado (+ ' + Math.round(delay / 60) + ' min)';
-                        statusColor = '#ef4444';
-                        iconColor = '#ef4444';
-                    }
-
-                    document.getElementById(`traffic-status-${dest.id}`).textContent = statusText;
-                    document.getElementById(`traffic-status-${dest.id}`).style.color = statusColor;
-                    document.getElementById(`traffic-time-${dest.id}`).style.color = iconColor;
-
-                    const iconEl = document.getElementById(`traffic-icon-${dest.id}`);
-                    if (iconEl) iconEl.style.color = iconColor;
-                }
-            } catch (e) {
-                console.error(`Trânsito Google Maps Falhou (Rota ${dest.id}):`, e);
-                document.getElementById(`traffic-status-${dest.id}`).textContent = 'Erro ao carregar';
-                document.getElementById(`traffic-status-${dest.id}`).style.color = '#ef4444';
-                document.getElementById(`traffic-time-${dest.id}`).textContent = '--';
-            }
+    function fetchTraffic() {
+        if (!window.google || !window.google.maps) {
+            console.error("Google Maps JS API não carregou a tempo.");
+            return;
         }
+
+        const service = new google.maps.DistanceMatrixService();
+
+        const destCoords = destinations.map(d => {
+            const [lat, lng] = d.coords.split(',');
+            return new google.maps.LatLng(parseFloat(lat), parseFloat(lng));
+        });
+        const [origLat, origLng] = origin.split(',');
+        const origLatLng = new google.maps.LatLng(parseFloat(origLat), parseFloat(origLng));
+
+        service.getDistanceMatrix({
+            origins: [origLatLng],
+            destinations: destCoords,
+            travelMode: google.maps.TravelMode.DRIVING,
+            drivingOptions: {
+                departureTime: new Date(),  // For traffic info
+                trafficModel: 'bestguess'
+            }
+        }, (response, status) => {
+            if (status !== 'OK') {
+                console.error("Distance Matrix Error:", status);
+                return;
+            }
+
+            const elements = response.rows[0].elements;
+
+            destinations.forEach((dest, index) => {
+                const element = elements[index];
+
+                if (element.status !== 'OK') {
+                    console.error(`Trânsito Google Maps Falhou (Rota ${dest.id}):`, element.status);
+                    const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
+                    if (oldStatusEl) {
+                        oldStatusEl.textContent = 'Erro ao carregar';
+                        oldStatusEl.style.color = '#ef4444';
+                    }
+                    const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
+                    if (newStatusEl) {
+                        newStatusEl.textContent = 'Erro';
+                        newStatusEl.style.color = '#ef4444';
+                    }
+                    return;
+                }
+
+                const trafficDuration = element.duration_in_traffic ? element.duration_in_traffic.value : element.duration.value;
+                const typicalDuration = element.duration.value;
+                let delay = trafficDuration - typicalDuration;
+                if (delay < 0) delay = 0;
+
+                const timeMin = Math.round(trafficDuration / 60);
+
+                // Atualiza Painel Antigo
+                const oldTimeEl = document.getElementById(`traffic-time-${dest.id}`);
+                if (oldTimeEl) oldTimeEl.textContent = timeMin + ' min';
+
+                // Atualiza Painel Novo (Condensado)
+                const newTimeEl = document.getElementById(`tf-time-${dest.id}`);
+                if (newTimeEl) newTimeEl.textContent = timeMin + ' min';
+
+                const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
+                const arrH = String(arrivalTime.getHours()).padStart(2, '0');
+                const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
+
+                const oldArrEl = document.getElementById(`traffic-arrival-${dest.id}`);
+                if (oldArrEl) oldArrEl.textContent = 'Chegada est. ' + arrH + ':' + arrM;
+
+                const newEtaEl = document.getElementById(`tf-eta-${dest.id}`);
+                if (newEtaEl) newEtaEl.textContent = 'ETA: ' + arrH + 'h' + arrM;
+
+                let statusTextOld = 'Trânsito Leve (No tempo)';
+                let statusTextNew = 'Trânsito: <b>Bom!</b>';
+                let statusColor = '#10b981';
+                let iconColor = '#10b981';
+
+                if (delay > 180 && delay <= 600) {
+                    const minDelay = Math.round(delay / 60);
+                    statusTextOld = 'Trânsito Moderado (+ ' + minDelay + ' min)';
+                    statusTextNew = 'Trânsito: <b>+' + minDelay + ' min</b>';
+                    statusColor = '#fbbf24';
+                    iconColor = '#fbbf24';
+                } else if (delay > 600) {
+                    const minDelay = Math.round(delay / 60);
+                    statusTextOld = 'Trânsito Pesado (+ ' + minDelay + ' min)';
+                    statusTextNew = 'Trânsito: <b>+' + minDelay + ' min</b>';
+                    statusColor = '#ef4444';
+                    iconColor = '#ef4444';
+                }
+
+                // Painel Antigo Status
+                const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
+                if (oldStatusEl) {
+                    oldStatusEl.textContent = statusTextOld;
+                    oldStatusEl.style.color = statusColor;
+                    if (oldTimeEl) oldTimeEl.style.color = iconColor;
+                }
+                const iconEl = document.getElementById(`traffic-icon-${dest.id}`);
+                if (iconEl) iconEl.style.color = iconColor;
+
+                // Painel Novo Status
+                const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
+                if (newStatusEl) {
+                    newStatusEl.innerHTML = statusTextNew;
+                    newStatusEl.style.color = statusColor;
+                    if (newTimeEl) newTimeEl.style.color = iconColor;
+                }
+            });
+        });
     }
 
     fetchTraffic();
