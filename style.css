@@ -221,6 +221,8 @@ body {
 .panel-header h3 i,
 .weather-header h3 i {
     margin-right: 5px;
+    position: relative;
+    top: 2px;
 }
 
 .weather-header h3 {

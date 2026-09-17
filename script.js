@@ -1,4 +1,4 @@
-// Configurações
+﻿// Configurações
 const UPDATE_WEATHER_INTERVAL = 30 * 60 * 1000; // 30 min
 const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
 const LATITUDE = -23.5276;
@@ -923,8 +923,6 @@ window.initGoogleMapsTraffic = async function () {
     fetchTraffic();
     setInterval(fetchTraffic, 15 * 60 * 1000);
 }
-
-initGoogleMapsTraffic();
 
 
 
