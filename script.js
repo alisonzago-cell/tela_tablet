@@ -679,7 +679,7 @@ const WEBHOOK_ON = 'https://sequematic.com/trigger-custom-webhook/6B26083F75/170
 const WEBHOOK_OFF = 'https://sequematic.com/trigger-custom-webhook/6B26083F75/170655';
 
 // LIMITES DA BATERIA PARA AUTOMAÇÃO (Altere aqui para testar)
-const BATTERY_MIN = 42; // Liga a tomada se a bateria chegar neste valor ou menos
+const BATTERY_MIN = 39; // Liga a tomada se a bateria chegar neste valor ou menos
 const BATTERY_MAX = 80; // Desliga a tomada se a bateria chegar neste valor ou mais
 
 let webhookCooldown = false;
@@ -688,6 +688,8 @@ async function initBattery() {
     if ('getBattery' in navigator) {
         try {
             const battery = await navigator.getBattery();
+            let prevChargingState = battery.charging;
+
             function updateBattery() {
                 const levelEl = document.getElementById('battery-level');
                 const iconEl = document.getElementById('battery-icon');
@@ -707,7 +709,28 @@ async function initBattery() {
                     else iconEl.className = 'ph ph-battery-low';
                 }
 
+                // Detecta se ACABOU de começar a carregar
+                if (battery.charging && !prevChargingState) {
+                    showBatteryPopup('Tomada ligada. Carregando!', '#10b981', 'ph-plug-charging');
+                } else if (!battery.charging && prevChargingState) {
+                    // Opcional: mostrar quando parar de carregar
+                    showBatteryPopup('Tomada desligada.', '#ef4444', 'ph-power');
+                }
+                prevChargingState = battery.charging;
+
                 checkBatteryAutomation(level, battery.charging);
+            }
+
+            function showBatteryPopup(text, color, iconClass) {
+                const popup = document.getElementById('battery-popup');
+                if (!popup) return;
+
+                popup.innerHTML = `<i class="ph ${iconClass}" style="color: ${color}; font-size: 1.5rem;"></i><span>${text}</span>`;
+                popup.style.opacity = '1';
+
+                setTimeout(() => {
+                    popup.style.opacity = '0';
+                }, 4000); // Fica 4 segundos na tela
             }
 
             function checkBatteryAutomation(level, isCharging) {

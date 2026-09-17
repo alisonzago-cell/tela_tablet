@@ -55,8 +55,9 @@
                     style="display: flex; width: 200%; height: 100%; transition: transform 0.4s ease-in-out; transform: translateX(0%);">
 
                     <!-- Página 1 -->
+                    <!-- Para alterar o espaçamento vertical entre os painéis internos, mude o valor de "gap: 4px;" na linha abaixo -->
                     <div
-                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
+                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center; gap: 8px;">
                         <!-- Bloquinho TV -->
                         <div
                             style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
@@ -93,6 +94,7 @@
                     </div>
 
                     <!-- Página 2 -->
+                    <!-- Para alterar o espaçamento vertical entre os painéis internos, mude o valor de "gap: 4px;" na linha abaixo -->
                     <div
                         style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
                         <!-- Bloquinho 4 -->
@@ -297,33 +299,12 @@
 
 
 
-    <!-- BOTÕES DE TESTE (TOMADA WIFI) -->
-    <div style="width: 300px; margin: 16px auto; display: flex; justify-content: center; gap: 16px;">
-        <button onclick="triggerWebhook('https://sequematic.com/trigger-custom-webhook/6B26083F75/170653', this)"
-            style="padding: 12px 24px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; border-radius: 8px; color: #10b981; font-weight: bold; cursor: pointer; backdrop-filter: blur(5px);">
-            LIGAR
-        </button>
-        <button onclick="triggerWebhook('https://sequematic.com/trigger-custom-webhook/6B26083F75/170655', this)"
-            style="padding: 12px 24px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; border-radius: 8px; color: #ef4444; font-weight: bold; cursor: pointer; backdrop-filter: blur(5px);">
-            DESLIGAR
-        </button>
+    <!-- POPUP SUTIL DE BATERIA -->
+    <div id="battery-popup"
+        style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); color: white; padding: 16px 32px; border-radius: 100px; font-weight: 600; font-size: 1.2rem; display: flex; align-items: center; gap: 12px; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out; z-index: 9999; border: 1px solid rgba(255, 255, 255, 0.1);">
+        <i class="ph ph-plug-charging" style="color: #10b981; font-size: 1.5rem;"></i>
+        <span id="battery-popup-text">Tomada ligada. Carregando!</span>
     </div>
-
-    <script>
-        function triggerWebhook(url, btn) {
-            const originalText = btn.textContent;
-            btn.textContent = 'Enviando...';
-            fetch(url, { mode: 'no-cors' })
-                .then(() => {
-                    btn.textContent = 'Sucesso!';
-                    setTimeout(() => btn.textContent = originalText, 2000);
-                })
-                .catch(() => {
-                    btn.textContent = 'Erro!';
-                    setTimeout(() => btn.textContent = originalText, 2000);
-                });
-        }
-    </script>
 
     <div id="night-mode-overlay"></div>
 
