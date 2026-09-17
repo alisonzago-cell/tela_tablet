@@ -1,4 +1,4 @@
-﻿// Configurações
+// Configurações
 const UPDATE_WEATHER_INTERVAL = 30 * 60 * 1000; // 30 min
 const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
 const LATITUDE = -23.5276;
@@ -824,99 +824,110 @@ window.initGoogleMapsTraffic = async function () {
                 trafficModel: 'bestguess'
             }
         }, (response, status) => {
-            if (status !== 'OK' || !response || !response.rows || !response.rows[0]) {
-                console.error("Distance Matrix Error:", status, response);
-                destinations.forEach(dest => {
-                    const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
-                    if (oldStatusEl) { oldStatusEl.textContent = 'Erro API'; oldStatusEl.style.color = '#ef4444'; }
-                    const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
-                    if (newStatusEl) { newStatusEl.textContent = 'Erro API'; newStatusEl.style.color = '#ef4444'; }
-                });
-                return;
-            }
-
-            const elements = response.rows[0].elements;
-
-            destinations.forEach((dest, index) => {
-                const element = elements[index];
-
-                if (element.status !== 'OK') {
-                    console.error(`Trânsito Google Maps Falhou (Rota ${dest.id}):`, element.status);
-                    const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
-                    if (oldStatusEl) {
-                        oldStatusEl.textContent = 'Erro ao carregar';
-                        oldStatusEl.style.color = '#ef4444';
-                    }
-                    const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
-                    if (newStatusEl) {
-                        newStatusEl.textContent = 'Erro';
-                        newStatusEl.style.color = '#ef4444';
-                    }
+            try {
+                console.log("Status API Google Maps:", status);
+                if (status !== 'OK' || !response || !response.rows || !response.rows[0]) {
+                    console.error("Distance Matrix Error:", status, response);
+                    destinations.forEach(dest => {
+                        const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
+                        if (oldStatusEl) { oldStatusEl.textContent = 'Erro API'; oldStatusEl.style.color = '#ef4444'; }
+                        const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
+                        if (newStatusEl) { newStatusEl.textContent = 'Erro API'; newStatusEl.style.color = '#ef4444'; }
+                    });
                     return;
                 }
 
-                const trafficDuration = element.duration_in_traffic ? element.duration_in_traffic.value : element.duration.value;
-                const typicalDuration = element.duration.value;
-                let delay = trafficDuration - typicalDuration;
-                if (delay < 0) delay = 0;
+                const elements = response.rows[0].elements;
+                console.log("Elements retornados:", elements.length);
 
-                const timeMin = Math.round(trafficDuration / 60);
+                destinations.forEach((dest, index) => {
+                    const element = elements[index];
 
-                // Atualiza Painel Antigo
-                const oldTimeEl = document.getElementById(`traffic-time-${dest.id}`);
-                if (oldTimeEl) oldTimeEl.textContent = timeMin + ' min';
+                    if (!element) {
+                        console.error(`Elemento vazio para o destino ${dest.id}.`);
+                        return;
+                    }
 
-                // Atualiza Painel Novo (Condensado)
-                const newTimeEl = document.getElementById(`tf-time-${dest.id}`);
-                if (newTimeEl) newTimeEl.textContent = timeMin + ' min';
+                    if (element.status !== 'OK') {
+                        console.error(`Trânsito Google Maps Falhou (Rota ${dest.id}):`, element.status);
+                        const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
+                        if (oldStatusEl) {
+                            oldStatusEl.textContent = 'Erro ao carregar';
+                            oldStatusEl.style.color = '#ef4444';
+                        }
+                        const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
+                        if (newStatusEl) {
+                            newStatusEl.textContent = 'Erro';
+                            newStatusEl.style.color = '#ef4444';
+                        }
+                        return;
+                    }
 
-                const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
-                const arrH = String(arrivalTime.getHours()).padStart(2, '0');
-                const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
+                    const trafficDuration = element.duration_in_traffic ? element.duration_in_traffic.value : element.duration.value;
+                    const typicalDuration = element.duration.value;
+                    let delay = trafficDuration - typicalDuration;
+                    if (delay < 0) delay = 0;
 
-                const oldArrEl = document.getElementById(`traffic-arrival-${dest.id}`);
-                if (oldArrEl) oldArrEl.textContent = 'Chegada est. ' + arrH + ':' + arrM;
+                    const timeMin = Math.round(trafficDuration / 60);
 
-                const newEtaEl = document.getElementById(`tf-eta-${dest.id}`);
-                if (newEtaEl) newEtaEl.textContent = 'ETA: ' + arrH + 'h' + arrM;
+                    // Atualiza Painel Antigo
+                    const oldTimeEl = document.getElementById(`traffic-time-${dest.id}`);
+                    if (oldTimeEl) oldTimeEl.textContent = timeMin + ' min';
 
-                let statusTextOld = 'Trânsito Leve (No tempo)';
-                let statusTextNew = 'Trânsito: <b>Bom!</b>';
-                let statusColor = '#10b981';
-                let iconColor = '#10b981';
+                    // Atualiza Painel Novo (Condensado)
+                    const newTimeEl = document.getElementById(`tf-time-${dest.id}`);
+                    if (newTimeEl) newTimeEl.textContent = timeMin + ' min';
 
-                if (delay > 180 && delay <= 600) {
-                    const minDelay = Math.round(delay / 60);
-                    statusTextOld = 'Trânsito Moderado (+ ' + minDelay + ' min)';
-                    statusTextNew = 'Trânsito: <b>+' + minDelay + ' min</b>';
-                    statusColor = '#fbbf24';
-                    iconColor = '#fbbf24';
-                } else if (delay > 600) {
-                    const minDelay = Math.round(delay / 60);
-                    statusTextOld = 'Trânsito Pesado (+ ' + minDelay + ' min)';
-                    statusTextNew = 'Trânsito: <b>+' + minDelay + ' min</b>';
-                    statusColor = '#ef4444';
-                    iconColor = '#ef4444';
-                }
+                    const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
+                    const arrH = String(arrivalTime.getHours()).padStart(2, '0');
+                    const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
 
-                // Painel Antigo Status
-                const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
-                if (oldStatusEl) {
-                    oldStatusEl.textContent = statusTextOld;
-                    oldStatusEl.style.color = statusColor;
-                    if (oldTimeEl) oldTimeEl.style.color = iconColor;
-                }
-                const iconEl = document.getElementById(`traffic-icon-${dest.id}`);
-                if (iconEl) iconEl.style.color = iconColor;
+                    const oldArrEl = document.getElementById(`traffic-arrival-${dest.id}`);
+                    if (oldArrEl) oldArrEl.textContent = 'Chegada est. ' + arrH + ':' + arrM;
 
-                // Painel Novo Status
-                const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
-                if (newStatusEl) {
-                    newStatusEl.innerHTML = statusTextNew;
-                    newStatusEl.style.color = statusColor;
-                    if (newTimeEl) newTimeEl.style.color = iconColor;
-                }
-            });
+                    const newEtaEl = document.getElementById(`tf-eta-${dest.id}`);
+                    if (newEtaEl) newEtaEl.textContent = 'ETA: ' + arrH + 'h' + arrM;
+
+                    let statusTextOld = 'Trânsito Leve (No tempo)';
+                    let statusTextNew = 'Trânsito: <b>Bom!</b>';
+                    let statusColor = '#10b981';
+                    let iconColor = '#10b981';
+
+                    if (delay > 180 && delay <= 600) {
+                        const minDelay = Math.round(delay / 60);
+                        statusTextOld = 'Trânsito Moderado (+ ' + minDelay + ' min)';
+                        statusTextNew = 'Trânsito: <b>+' + minDelay + ' min</b>';
+                        statusColor = '#fbbf24';
+                        iconColor = '#fbbf24';
+                    } else if (delay > 600) {
+                        const minDelay = Math.round(delay / 60);
+                        statusTextOld = 'Trânsito Pesado (+ ' + minDelay + ' min)';
+                        statusTextNew = 'Trânsito: <b>+' + minDelay + ' min</b>';
+                        statusColor = '#ef4444';
+                        iconColor = '#ef4444';
+                    }
+
+                    // Painel Antigo Status
+                    const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
+                    if (oldStatusEl) {
+                        oldStatusEl.textContent = statusTextOld;
+                        oldStatusEl.style.color = statusColor;
+                        if (oldTimeEl) oldTimeEl.style.color = iconColor;
+                    }
+                    const iconEl = document.getElementById(`traffic-icon-${dest.id}`);
+                    if (iconEl) iconEl.style.color = iconColor;
+
+                    // Painel Novo Status
+                    const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
+                    if (newStatusEl) {
+                        newStatusEl.innerHTML = statusTextNew;
+                        newStatusEl.style.color = statusColor;
+                        if (newTimeEl) newTimeEl.style.color = iconColor;
+                    }
+                });
+            } catch (err) {
+                console.error("ERRO CATCH NO CALLBACK:", err.message, err.stack);
+            }
         });
     }
 
