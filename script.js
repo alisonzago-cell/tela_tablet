@@ -1,4 +1,4 @@
-// Configurações
+﻿// Configurações
 const UPDATE_WEATHER_INTERVAL = 30 * 60 * 1000; // 30 min
 const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
 const LATITUDE = -23.5276;
@@ -52,6 +52,23 @@ function updateClock() {
     const dayNamesList = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
     const dayOfWeek = dayNamesList[now.getDay()];
     dateEl.textContent = `${dayOfWeek}, ${day}/${month}/${year}`;
+
+    // Atualiza dinamicamente os ETAs do Trânsito
+    if (window.trafficDurations) {
+        for (let id in window.trafficDurations) {
+            const duration = window.trafficDurations[id];
+            // Usa o horário ajustado do tablet (now)
+            const arrivalTime = new Date(now.getTime() + duration * 1000);
+            const arrH = String(arrivalTime.getHours()).padStart(2, '0');
+            const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
+
+            const oldArrEl = document.getElementById(`traffic-arrival-${id}`);
+            if (oldArrEl) oldArrEl.textContent = 'Chegada est. ' + arrH + ':' + arrM;
+
+            const newEtaEl = document.getElementById(`tf-eta-${id}`);
+            if (newEtaEl) newEtaEl.textContent = 'ETA: ' + arrH + 'h' + arrM;
+        }
+    }
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -109,16 +126,16 @@ async function fetchWeather() {
         // O ".catch" individual garante que se uma cair (ex: AQI), o resto continua renderizando.
         const [currData, hourlyData, dailyData, aqiData] = await Promise.all([
             fetch(proxyBase + encodeURIComponent(currentUrl))
-                .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+                .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
                 .catch(e => { console.error("Erro Google Current API:", e); return null; }),
             fetch(proxyBase + encodeURIComponent(hourlyUrl))
-                .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+                .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
                 .catch(e => { console.error("Erro Google Hourly API:", e); return null; }),
             fetch(proxyBase + encodeURIComponent(dailyUrl))
-                .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+                .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
                 .catch(e => { console.error("Erro Google Daily API:", e); return null; }),
             fetch(proxyBase + encodeURIComponent(aqiUrl))
-                .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+                .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
                 .catch(e => { console.error("Erro OpenMeteo AQI API:", e); return null; })
         ]);
 
@@ -319,12 +336,12 @@ async function fetchAllNews() {
             // Isso evita a necessidade de escrevermos um parser XML complexo e resolve possíveis bloqueios de CORS.
             const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
             const response = await fetch(url);
-            
+
             if (!response.ok) {
                 console.warn(`Aviso: Falha ao carregar o feed ${feed.source} (HTTP ${response.status})`);
                 continue; // Pula este feed e tenta o próximo
             }
-            
+
             const data = await response.json();
 
             if (data.status === 'ok' && data.items) {
@@ -701,7 +718,7 @@ const WEBHOOK_ON = 'https://sequematic.com/trigger-custom-webhook/6B26083F75/170
 const WEBHOOK_OFF = 'https://sequematic.com/trigger-custom-webhook/6B26083F75/170655';
 
 // LIMITES DA BATERIA PARA AUTOMAÇÃO (Altere aqui para testar)
-const BATTERY_MIN = 39; // Liga a tomada se a bateria chegar neste valor ou menos
+const BATTERY_MIN = 20; // Liga a tomada se a bateria chegar neste valor ou menos
 const BATTERY_MAX = 80; // Desliga a tomada se a bateria chegar neste valor ou mais
 
 let webhookCooldown = false;
@@ -888,7 +905,7 @@ window.initGoogleMapsTraffic = async function () {
     // Fazemos a chamada para o nosso Worker no Cloudflare que atua como um Proxy Reverso.
     // Isso é necessário porque o tablet (Android 4.2.2 / Chrome 70) é incompatível com o SDK moderno do Google Maps.
     // O Worker faz a chamada Rest API para o Google, contorna problemas de CORS e devolve o JSON limpo.
-    window.fetchTraffic = function() {
+    window.fetchTraffic = function () {
         const refreshIcon = document.getElementById('traffic-refresh-icon');
         if (refreshIcon) {
             refreshIcon.style.transform = 'rotate(180deg)';
@@ -959,15 +976,9 @@ window.initGoogleMapsTraffic = async function () {
                     const newTimeEl = document.getElementById(`tf-time-${dest.id}`);
                     if (newTimeEl) newTimeEl.textContent = timeMin + ' min';
 
-                    const arrivalTime = new Date(Date.now() + trafficDuration * 1000);
-                    const arrH = String(arrivalTime.getHours()).padStart(2, '0');
-                    const arrM = String(arrivalTime.getMinutes()).padStart(2, '0');
-
-                    const oldArrEl = document.getElementById(`traffic-arrival-${dest.id}`);
-                    if (oldArrEl) oldArrEl.textContent = 'Chegada est. ' + arrH + ':' + arrM;
-
-                    const newEtaEl = document.getElementById(`tf-eta-${dest.id}`);
-                    if (newEtaEl) newEtaEl.textContent = 'ETA: ' + arrH + 'h' + arrM;
+                    // Armazena a duração para o relógio atualizar o ETA dinamicamente
+                    if (!window.trafficDurations) window.trafficDurations = {};
+                    window.trafficDurations[dest.id] = trafficDuration;
 
                     let statusTextOld = 'Trânsito Leve (No tempo)';
                     let statusTextNew = 'Trânsito: <b>Bom!</b>';
@@ -1010,9 +1021,9 @@ window.initGoogleMapsTraffic = async function () {
             .catch(err => {
                 const refreshIcon = document.getElementById('traffic-refresh-icon');
                 if (refreshIcon) refreshIcon.style.transform = 'rotate(0deg)';
-                
+
                 console.error("ERRO CRÍTICO NO TRÂNSITO:", err.message);
-                
+
                 // Exibe fallback visual para que o usuário saiba que houve falha (ex: worker fora do ar)
                 destinations.forEach(dest => {
                     const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
@@ -1030,6 +1041,21 @@ window.initGoogleMapsTraffic = async function () {
 
 
 
+// ======== PIXEL SHIFTING (ANTI BURN-IN) ========
+// Move a interface sutilmente a cada 5 minutos para evitar retenção de imagem na tela
+function applyPixelShift() {
+    const dashboard = document.querySelector('.dashboard');
+    if (!dashboard) return;
+
+    // Valores aleatórios entre -3px e 3px
+    const shiftX = Math.floor(Math.random() * 7) - 3;
+    const shiftY = Math.floor(Math.random() * 7) - 3;
+
+    // Aplica transição suave para não ser um "pulo" brusco
+    dashboard.style.transition = 'transform 2s ease-in-out';
+    dashboard.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+}
+
 // ======== INIT DASHBOARD ========
 // Relógio
 updateClock();
@@ -1038,6 +1064,9 @@ setInterval(updateClock, 1000);
 // Fundo
 changeBackground();
 setInterval(changeBackground, CHANGE_BG_INTERVAL);
+
+// Pixel Shift (Burn-in Protection)
+setInterval(applyPixelShift, 5 * 60 * 1000);
 
 // Clima
 fetchWeather();
