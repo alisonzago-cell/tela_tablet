@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Tablet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Ícones gratuitos do Phosphor Icons (Via CSS puro) -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Backgrounds for crossfade -->
+    <div class="bg" id="bg1"></div>
+    <div class="bg" id="bg2" style="opacity: 0;"></div>
+    <div class="bg-overlay"></div>
+
+    <main class="dashboard-container">
+        <!-- Linha 1, Col 1: Bloco do Relógio -->
+        <section class="panel clock-panel glass">
+            <h1 id="time" class="time-display">00:00</h1>
+            <h2 id="date" class="date-display">Carregando data...</h2>
+        </section>
+
+        <!-- Linha 1, Col 2: Bloco de Notícias -->
+        <section class="panel news-panel glass">
+            <div class="panel-header"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <h3 style="font-size: 1.0rem; margin-bottom: 10;"><i class="ph ph-newspaper"></i> Últimas Notícias</h3>
+                <div id="battery-status"
+                    style="font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 2px;"
+                    title="Bateria">
+                    <i class="ph ph-battery-full" id="battery-icon"></i> <span id="battery-level">--%</span>
+                </div>
+            </div>
+            <div class="news-list-container" id="news-list-container">
+                <div class="news-list" id="news-list">
+                    <div style="text-align: center; color: var(--text-secondary);">Carregando notícias...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Linha 1, Col 3: Bloco de Trânsito Condensado -->
+        <section class="panel traffic-panel glass" style="padding: 0; display: flex; flex-direction: column;">
+            <div class="panel-header"
+                style="padding: 12px 12px 0 12px; margin-bottom: 0px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 onclick="fetchTraffic()" title="Atualizar Trânsito"
+                    style="font-size: 1.0rem; margin-bottom: 0; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <i class="ph ph-car"></i> Trânsito
+                    <i class="ph ph-arrows-clockwise" id="traffic-refresh-icon"
+                        style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.5s;"></i>
+                </h3>
+            </div>
+            <div style="flex-grow: 1; overflow: hidden; position: relative;">
+                <div id="traffic-slider"
+                    style="display: flex; width: 200%; height: 100%; transition: transform 0.4s ease-in-out; transform: translateX(0%);">
+
+                    <!-- Página 1 -->
+                    <!-- Compatibilidade com navegadores antigos: gap removido, usando margin-bottom nos itens -->
+                    <div
+                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center;">
+                        <!-- Bloquinho TV -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 5px;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">TVC <span
+                                    id="tf-time-1" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-1"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">+-- min</div>
+                            <div id="tf-eta-1"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 1px;">ETA: --:--
+                            </div>
+                        </div>
+                        <!-- Bloquinho CAL -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 5px;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">CAL <span
+                                    id="tf-time-2" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-2"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">+-- min</div>
+                            <div id="tf-eta-2"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 1px;">ETA: --:--
+                            </div>
+                        </div>
+                        <!-- Bloquinho PIT -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">PIT <span
+                                    id="tf-time-3" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-3"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">+-- min</div>
+                            <div id="tf-eta-3"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 1px;">ETA: --:--
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Página 2 -->
+                    <!-- Compatibilidade com navegadores antigos: gap removido, usando margin-bottom nos itens -->
+                    <div
+                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center;">
+                        <!-- Bloquinho 4 -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 0px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 5px;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">TV 2 <span
+                                    id="tf-time-4" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-4"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0px;">+-- min</div>
+                            <div id="tf-eta-4"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 0px;">ETA: --:--
+                            </div>
+                        </div>
+                        <!-- Bloquinho 5 -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 5px;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">CAL 2 <span
+                                    id="tf-time-5" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-5"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">+-- min</div>
+                            <div id="tf-eta-5"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 1px;">ETA: --:--
+                            </div>
+                        </div>
+                        <!-- Bloquinho 6 -->
+                        <div
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                            <div style="font-size: 1.15rem; font-weight: 800; line-height: 1.1;">PIT 2 <span
+                                    id="tf-time-6" style="color: var(--text-secondary);">--</span></div>
+                            <div id="tf-status-6"
+                                style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">+-- min</div>
+                            <div id="tf-eta-6"
+                                style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 1px;">ETA: --:--
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Linha 2, Col 1 e 2: Bloco do Clima (Atual + Próximos Dias) -->
+        <section class="panel weather-panel glass" style="padding: 16px; display: flex; flex-direction: row; gap: 0px;">
+
+            <!-- Esquerda: Clima Atual -->
+            <div style="flex: 0 0 416px; display: flex; flex-direction: column; margin-right: 10px;">
+                <div class="weather-header" style="margin-bottom: 10px;">
+                    <h3 id="location-title" style="margin-bottom: 0;"><i class="ph ph-map-pin"></i> Bom Retiro, São
+                        Paulo</h3>
+                </div>
+
+                <div class="weather-current">
+                    <div class="temp-main">
+                        <span id="current-temp">--°</span>
+                    </div>
+                    <div class="weather-details">
+                        <div
+                            style="font-size: 2.6rem; justify-content: center; margin-bottom: 6px; font-weight: 800; display: flex;">
+                            <span id="current-max" style="color: #ef4444;">--°</span>
+                            <span style="color: var(--text-primary); font-weight: 400; margin: 0 4px;">/</span>
+                            <span id="current-min" style="color: #60a5fa;">--°</span>
+                        </div>
+                        <div class="detail"><i class="ph ph-drop"></i> <span id="current-humidity">--%</span>&nbsp;Umid
+                        </div>
+                        <div class="detail"><i class="ph ph-wind"></i> <span id="current-wind">--</span>&nbsp;km/h</div>
+                        <div class="detail"><i class="ph ph-cloud-rain"></i> <span
+                                id="current-rain">--%</span>&nbsp;Chuva</div>
+                        <div class="detail"><i class="ph ph-leaf"></i> Ar:&nbsp;<span id="current-aqi">--</span></div>
+                    </div>
+                </div>
+                <div class="weather-hourly" id="hourly-forecast">
+                    <!-- Forecast items injected via JS -->
+                </div>
+            </div>
+
+            <!-- Direita: Próximos Dias -->
+            <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+                <div class="weather-header" style="margin-bottom: 10px;">
+                    <h3 style="margin-bottom: 0;"><i class="ph ph-calendar-blank"></i> Próximos Dias</h3>
+                </div>
+                <div class="weather-daily" id="daily-forecast"
+                    style="display: flex; flex-direction: column; gap: 4px; overflow-y: auto;">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+        </section>
+
+        <div class="right-col-wrapper" style="display: flex; flex-direction: column; min-height: 0; min-width: 0;">
+            <section class="panel timer-panel glass" style="flex-grow: 1; margin-bottom: 8px; padding: 0;">
+
+                <div class="panel-header"
+                    style="padding: 16px 16px 0 16px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 id="calendar-timer-title" style="font-size: 1.15rem; margin-bottom: 0;"><i
+                            class="ph ph-calendar"></i> Calendário</h3>
+                    <div class="slider-controls"
+                        style="cursor: pointer; display: flex; gap: 4px; color: var(--text-secondary);"
+                        onclick="toggleCalendarTimerSlider()">
+                        <i class="ph ph-caret-left" style="font-size: 1.2rem; transition: color 0.2s;"></i>
+                        <i class="ph ph-caret-right" style="font-size: 1.2rem; transition: color 0.2s;"></i>
+                    </div>
+                </div>
+
+                <div id="calendar-timer-slider"
+                    style="display: flex; width: 200%; transition: transform 0.4s ease-in-out; flex-grow: 1; transform: translateX(-50%);">
+
+                    <!-- Slide 1: Timer -->
+                    <div style="width: 50%; padding: 0 16px 16px 16px; display: flex; flex-direction: column;">
+                        <div class="timer-body">
+                            <span id="timer-display" class="timer-display">00:00:00</span>
+                            <div class="timer-controls">
+                                <div class="timer-col">
+                                    <button class="timer-btn" onclick="adjustTimer(10, 'm')">+10m</button>
+                                    <button class="timer-btn" onclick="adjustTimer(-10, 'm')">-10m</button>
+                                </div>
+                                <div class="timer-col">
+                                    <button class="timer-btn" onclick="adjustTimer(1, 'm')">+1m</button>
+                                    <button class="timer-btn" onclick="adjustTimer(-1, 'm')">-1m</button>
+                                </div>
+                                <div class="timer-col">
+                                    <button class="timer-btn" onclick="adjustTimer(1, 's')">+1s</button>
+                                    <button class="timer-btn" onclick="adjustTimer(-1, 's')">-1s</button>
+                                </div>
+                            </div>
+                            <div class="timer-actions">
+                                <button class="timer-btn action-btn" onclick="toggleTimer()" id="timer-toggle-btn"><i
+                                        class="ph ph-play"></i> Iniciar</button>
+                                <button class="timer-btn action-btn" onclick="resetTimer()"><i
+                                        class="ph ph-arrow-counter-clockwise"></i> Reset</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 2: Calendário -->
+                    <div style="width: 50%; padding: 0 16px 16px 16px; display: flex; flex-direction: column;">
+                        <div class="calendar-grid-wrapper">
+                            <div class="calendar-weekdays">
+                                <div>Dom</div>
+                                <div>Seg</div>
+                                <div>Ter</div>
+                                <div>Qua</div>
+                                <div>Qui</div>
+                                <div>Sex</div>
+                                <div>Sáb</div>
+                            </div>
+                            <div class="calendar-grid" id="calendar-grid">
+                                <!-- Dias injetados via JS -->
+                            </div>
+                        </div>
+                        <div class="calendar-legend-container"
+                            style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; height: 38px; overflow: hidden;">
+                            <div class="calendar-legend" id="calendar-legend"
+                                style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+                                <!-- Legenda dos feriados do mês -->
+                            </div>
+                            <div class="calendar-legend-controls"
+                                style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding-left: 8px;">
+                                <i class="ph ph-caret-up"
+                                    style="cursor: pointer; font-size: 1.1rem; line-height: 1; margin-bottom: 2px;"
+                                    onclick="changeLegendPage(-1)"></i>
+                                <i class="ph ph-caret-down" style="cursor: pointer; font-size: 1.1rem; line-height: 1;"
+                                    onclick="changeLegendPage(1)"></i>
+                            </div>
+                        </div>
+                    </div>
+            </section>
+
+            <section class="panel glass"
+                style="padding: 13px 15px; margin-bottom: 0px; display: flex; flex-direction: row; justify-content: space-between;">
+                <button class="timer-btn"
+                    style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                    onclick="location.reload()" title="Refresh">
+                    <i class="ph ph-arrows-clockwise" style="font-size: 1.4rem;"></i>
+                </button>
+                <button class="timer-btn"
+                    style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                    onclick="toggleFullscreen()" title="FullScreen">
+                    <i class="ph ph-corners-out" style="font-size: 1.4rem;"></i>
+                </button>
+                <button class="timer-btn"
+                    style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                    onclick="changeBackground()" title="Background">
+                    <i class="ph ph-image" style="font-size: 1.4rem;"></i>
+                </button>
+                <button class="timer-btn"
+                    style="flex: 1; margin: 0 8px 0 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                    onclick="if(window.vConsole) window.vConsole.show();" title="Console de Erros">
+                    <i class="ph ph-terminal" style="font-size: 1.4rem;"></i>
+                </button>
+                <button class="timer-btn"
+                    style="flex: 1; margin: 0; padding: 6px; display: flex; align-items: center; justify-content: center;"
+                    onclick="toggleNightMode()" title="Sleep Mode">
+                    <i class="ph ph-moon" style="font-size: 1.4rem;"></i>
+                </button>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modal de Notícias -->
+    <div id="news-modal">
+        <div class="modal-content">
+            <i class="ph ph-x close-modal" onclick="closeNewsModal()"></i>
+            <h2 id="modal-title">Título</h2>
+            <div id="modal-source">Fonte</div>
+            <div id="modal-desc">Descrição</div>
+        </div>
+    </div>
+
+
+
+    <!-- POPUP SUTIL DE BATERIA -->
+    <div id="battery-popup"
+        style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); color: white; padding: 16px 32px; border-radius: 100px; font-weight: 600; font-size: 1.2rem; display: flex; align-items: center; gap: 12px; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out; z-index: 9999; border: 1px solid rgba(255, 255, 255, 0.1);">
+        <i class="ph ph-plug-charging" style="color: #10b981; font-size: 1.5rem;"></i>
+        <span id="battery-popup-text">Tomada ligada. Carregando!</span>
+    </div>
+
+    <div id="night-mode-overlay"></div>
+
+    <script src="script.js"></script>
+
+    <!-- Console na tela para testes no Tablet -->
+    <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
+    <script>
+        var vConsole = new window.VConsole();
+        // Ocultar o botão flutuante padrão do vConsole usando CSS injetado
+        const style = document.createElement('style');
+        style.innerHTML = '.vc-switch { display: none !important; }';
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>
