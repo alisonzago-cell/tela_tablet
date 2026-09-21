@@ -69,6 +69,25 @@ function updateClock() {
             if (newEtaEl) newEtaEl.textContent = 'ETA: ' + arrH + 'h' + arrM;
         }
     }
+
+    // Automação da mudança do trânsito na sexta 18h e segunda 0h
+    // Verifica a cada segundo a hora exata
+    const d = now.getDay();
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+
+    if (d === 5 && h === 18 && m === 0 && s === 0) {
+        // Sexta-feira 18:00:00 -> Vai para a página 2
+        if (typeof window.toggleTrafficSlider === 'function' && !window.isTrafficSlidePage2) {
+            window.toggleTrafficSlider();
+        }
+    } else if (d === 1 && h === 0 && m === 0 && s === 0) {
+        // Segunda-feira 00:00:00 -> Volta para a página 1
+        if (typeof window.toggleTrafficSlider === 'function' && window.isTrafficSlidePage2) {
+            window.toggleTrafficSlider();
+        }
+    }
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -91,12 +110,21 @@ function changeBackground() {
         const nextImage = `url('${nextImageUrl}')`;
         if (isBg1Active) {
             bg2.style.backgroundImage = nextImage;
-            bg2.style.opacity = 1;
-            bg1.style.opacity = 0;
+            // Aguarda o navegador renderizar a nova imagem de fundo no DOM escondido
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    bg2.style.opacity = 1;
+                    bg1.style.opacity = 0;
+                });
+            });
         } else {
             bg1.style.backgroundImage = nextImage;
-            bg1.style.opacity = 1;
-            bg2.style.opacity = 0;
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    bg1.style.opacity = 1;
+                    bg2.style.opacity = 0;
+                });
+            });
         }
         isBg1Active = !isBg1Active;
     };
@@ -107,6 +135,9 @@ setInterval(changeBackground, CHANGE_BG_INTERVAL);
 
 // ======== PREVISÃO DO TEMPO ========
 async function fetchWeather() {
+    const refreshIcon = document.getElementById('weather-refresh-icon');
+    if (refreshIcon) refreshIcon.style.transform = 'rotate(180deg)';
+
     try {
         const apiKey = 'AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY';
 
@@ -158,6 +189,7 @@ async function fetchWeather() {
             }
         }
 
+        let todayIndex = 0;
         // Dados atuais (Google)
         if (currData && currData.temperature) {
             document.getElementById('current-temp').textContent = `${Math.round(currData.temperature.degrees)}°`;
@@ -166,8 +198,21 @@ async function fetchWeather() {
 
             // max/min do dia atual
             if (dailyData && dailyData.forecastDays && dailyData.forecastDays.length > 0) {
-                document.getElementById('current-max').textContent = `${Math.round(dailyData.forecastDays[0].maxTemperature.degrees)}°`;
-                document.getElementById('current-min').textContent = `${Math.round(dailyData.forecastDays[0].minTemperature.degrees)}°`;
+                const nowLocal = new Date();
+                // Ajuste de fuso horário (-1h) para equiparar com a lógica do relógio
+                nowLocal.setHours(nowLocal.getHours() - 1);
+
+                // Procura o índice do dia atual
+                for (let i = 0; i < dailyData.forecastDays.length; i++) {
+                    const dDate = dailyData.forecastDays[i].displayDate;
+                    if (dDate && dDate.day === nowLocal.getDate() && dDate.month === (nowLocal.getMonth() + 1)) {
+                        todayIndex = i;
+                        break;
+                    }
+                }
+
+                document.getElementById('current-max').textContent = `${Math.round(dailyData.forecastDays[todayIndex].maxTemperature.degrees)}°`;
+                document.getElementById('current-min').textContent = `${Math.round(dailyData.forecastDays[todayIndex].minTemperature.degrees)}°`;
             }
 
             // Chance de chuva atual
@@ -207,12 +252,12 @@ async function fetchWeather() {
             let dailyHtml = '';
             const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
-            // Começa de i = 1 para pegar o dia seguinte em diante
-            for (let i = 1; i < dailyData.forecastDays.length; i++) {
+            // Começa do dia seguinte ao hoje (todayIndex + 1)
+            for (let i = todayIndex + 1; i < dailyData.forecastDays.length; i++) {
                 const dData = dailyData.forecastDays[i];
 
                 const dDate = new Date(dData.displayDate.year, dData.displayDate.month - 1, dData.displayDate.day);
-                const dayName = i === 1 ? 'Amanhã' : dayNames[dDate.getDay()];
+                const dayName = i === todayIndex + 1 ? 'Amanhã' : dayNames[dDate.getDay()];
                 const dayPadded = String(dDate.getDate()).padStart(2, '0');
                 const monthPadded = String(dDate.getMonth() + 1).padStart(2, '0');
 
@@ -239,7 +284,12 @@ async function fetchWeather() {
             dailyContainer.innerHTML = dailyHtml;
         }
 
+        if (refreshIcon) {
+            setTimeout(() => refreshIcon.style.transform = 'rotate(0deg)', 500);
+        }
+
     } catch (error) {
+        if (refreshIcon) refreshIcon.style.transform = 'rotate(0deg)';
         console.error("Erro ao buscar clima: ", error);
 
         // Mudar o título para indicar erro
@@ -296,8 +346,7 @@ async function fetchWeather() {
         }
     }
 }
-fetchWeather();
-setInterval(fetchWeather, UPDATE_WEATHER_INTERVAL);
+// Intervalo movido para a sessão INIT DASHBOARD
 
 // Lógica do Slider do Clima
 let isWeatherSlideDaily = false;
@@ -319,6 +368,7 @@ const RSS_FEEDS = [
     { url: 'https://iclnoticias.com.br/feed/', tag: 'ICL', class: 'tag-icl', source: 'ICL Notícias' },
     { url: 'https://www.gazetaesportiva.com/feed/', tag: 'Esportes', class: 'tag-esportes', source: 'Gazeta Esportiva' },
     { url: 'https://feeds.folha.uol.com.br/emcimadahora/rss091.xml', tag: 'Folha', class: 'tag-folha', source: 'Folha de S.Paulo' },
+    { url: 'https://feeds.folha.uol.com.br/esporte/rss091.xml', tag: 'Esportes', class: 'tag-folha', source: 'Folha de S.Paulo' },
     { url: 'https://feeds.bbci.co.uk/portuguese/rss.xml', tag: 'BBC', class: 'tag-bbc', source: 'BBC Brasil' }
 ];
 
@@ -348,6 +398,17 @@ async function fetchAllNews() {
                 const items = data.items.slice(0, 10); // 10 de cada
                 items.forEach(item => {
                     if (item.title && item.title.trim().length >= 40) {
+                        // Filtros para remover notícias indesejadas (vídeos, onde assistir)
+                        const titleLower = item.title.toLowerCase();
+
+                        if (titleLower.includes('assista ao')) {
+                            return; // Ignora esta notícia
+                        }
+
+                        if (feed.tag === 'Esportes' && (titleLower.includes('onde assistir') || titleLower.includes('melhores momentos'))) {
+                            return; // Ignora esta notícia
+                        }
+
                         allItems.push(Object.assign({}, item, {
                             tag: feed.tag,
                             tagClass: feed.class,
@@ -365,7 +426,24 @@ async function fetchAllNews() {
             return;
         }
 
-        shuffleArray(allItems);
+        // Separa as notícias do 'emcimadahora' (tag === 'Folha') das demais
+        const folhaItems = allItems.filter(item => item.tag === 'Folha');
+        const otherItems = allItems.filter(item => item.tag !== 'Folha');
+
+        // Embaralha ambas as listas independentemente
+        shuffleArray(folhaItems);
+        shuffleArray(otherItems);
+
+        // Intercala 1 Folha, 1 Aleatório, 1 Folha, 1 Aleatório...
+        const interleavedItems = [];
+        let fIndex = 0;
+        let oIndex = 0;
+        while (fIndex < folhaItems.length || oIndex < otherItems.length) {
+            if (fIndex < folhaItems.length) interleavedItems.push(folhaItems[fIndex++]);
+            if (oIndex < otherItems.length) interleavedItems.push(otherItems[oIndex++]);
+        }
+
+        allItems = interleavedItems;
         newsList.innerHTML = '';
 
         allItems.forEach((item, index) => {
@@ -421,16 +499,44 @@ async function fetchAllNews() {
 fetchAllNews();
 setInterval(fetchAllNews, 30 * 60 * 1000);
 
-// Auto-scroll das notícias
+// Auto-scroll das notícias e Suporte a Arrastar (Drag)
 let scrollPos = 0;
-function autoScrollNews() {
-    const container = document.getElementById('news-list-container');
-    if (newsList.scrollHeight > container.clientHeight) {
-        scrollPos += 0.2; // velocidade do scroll reduzida pela metade
-        if (scrollPos >= newsList.scrollHeight - container.clientHeight) {
-            scrollPos = 0; // volta pro topo
+let isDraggingNews = false;
+let startDragY = 0;
+
+const newsContainer = document.getElementById('news-list-container');
+if (newsContainer) {
+    const handleDragStart = (y) => { isDraggingNews = true; startDragY = y; };
+    const handleDragMove = (y) => {
+        if (!isDraggingNews) return;
+        scrollPos -= (y - startDragY);
+        if (scrollPos < 0) scrollPos = 0;
+        if (scrollPos >= newsList.scrollHeight - newsContainer.clientHeight) {
+            scrollPos = newsList.scrollHeight - newsContainer.clientHeight;
         }
+        startDragY = y;
         newsList.style.transform = `translate3d(0, -${scrollPos}px, 0)`;
+    };
+    const handleDragEnd = () => { isDraggingNews = false; };
+
+    newsContainer.addEventListener('mousedown', (e) => handleDragStart(e.pageY));
+    window.addEventListener('mousemove', (e) => handleDragMove(e.pageY));
+    window.addEventListener('mouseup', handleDragEnd);
+
+    newsContainer.addEventListener('touchstart', (e) => handleDragStart(e.touches[0].pageY));
+    window.addEventListener('touchmove', (e) => handleDragMove(e.touches[0].pageY));
+    window.addEventListener('touchend', handleDragEnd);
+}
+
+function autoScrollNews() {
+    if (!isDraggingNews && newsContainer) {
+        if (newsList.scrollHeight > newsContainer.clientHeight) {
+            scrollPos += 0.24; // velocidade do scroll 20% mais rápida (era 0.2)
+            if (scrollPos >= newsList.scrollHeight - newsContainer.clientHeight) {
+                scrollPos = 0; // volta pro topo
+            }
+            newsList.style.transform = `translate3d(0, -${scrollPos}px, 0)`;
+        }
     }
     requestAnimationFrame(autoScrollNews);
 }
@@ -719,7 +825,7 @@ const WEBHOOK_OFF = 'https://sequematic.com/trigger-custom-webhook/6B26083F75/17
 
 // LIMITES DA BATERIA PARA AUTOMAÇÃO (Altere aqui para testar)
 const BATTERY_MIN = 20; // Liga a tomada se a bateria chegar neste valor ou menos
-const BATTERY_MAX = 80; // Desliga a tomada se a bateria chegar neste valor ou mais
+const BATTERY_MAX = 81; // Desliga a tomada se a bateria chegar neste valor ou mais
 
 let webhookCooldown = false;
 
@@ -828,7 +934,11 @@ function checkNightMode() {
     const overlay = document.getElementById('night-mode-overlay');
     if (!overlay) return;
 
-    const hour = new Date().getHours();
+    const now = new Date();
+    // Ajuste de fuso horário (-1h) idêntico ao relógio principal
+    now.setHours(now.getHours() - 1);
+
+    const hour = now.getHours();
     const isNight = hour >= 23 || hour < 5;
 
     if (isNight && !overlay.classList.contains('active')) {
@@ -869,18 +979,47 @@ document.getElementById('news-modal').addEventListener('click', function (e) {
 
 // ======== API DO TRÂNSITO (GOOGLE MAPS VIA PROXY) ========
 
-let isTrafficSlidePage2 = false;
+window.isTrafficSlidePage2 = false;
 window.toggleTrafficSlider = function () {
     const slider = document.getElementById('traffic-slider');
     if (!slider) return;
 
-    isTrafficSlidePage2 = !isTrafficSlidePage2;
-    if (isTrafficSlidePage2) {
+    window.isTrafficSlidePage2 = !window.isTrafficSlidePage2;
+    if (window.isTrafficSlidePage2) {
         slider.style.transform = 'translateX(-50%)';
     } else {
         slider.style.transform = 'translateX(0)';
     }
 }
+
+// Suporte a swipe para o Painel de Trânsito
+setTimeout(() => {
+    const trafficContainer = document.querySelector('.traffic-panel');
+    if (trafficContainer) {
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        trafficContainer.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        trafficContainer.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 40) {
+                // Swipe Left
+                if (!window.isTrafficSlidePage2) window.toggleTrafficSlider();
+            }
+            if (touchEndX > touchStartX + 40) {
+                // Swipe Right
+                if (window.isTrafficSlidePage2) window.toggleTrafficSlider();
+            }
+        }
+    }
+}, 1000);
 
 window.initGoogleMapsTraffic = async function () {
     const apiKey = 'AIzaSyAMPM6odYJFIjJyy0eYwGVsf0wn7u6GKzY';
@@ -896,9 +1035,9 @@ window.initGoogleMapsTraffic = async function () {
         { id: 1, coords: '-23.511595,-46.694691' }, // R. Cenno Sbrigui, 378 (Água Branca)
         { id: 2, coords: '-23.612867,-46.668438' }, // R. dos Chanés, 205 (Moema)
         { id: 3, coords: '-23.522546,-46.663235' }, // R. Joaquim Manuel de Macedo, 329 (Barra Funda)
-        { id: 4, coords: '-23.511595,-46.694691' }, // Temporário TV 2
-        { id: 5, coords: '-23.612867,-46.668438' }, // Temporário CAL 2
-        { id: 6, coords: '-23.522546,-46.663235' }  // Temporário PIT 2
+        { id: 4, coords: 'Av General Mac Arthur, 1587, Sao Paulo, SP' }, // JAG
+        { id: 5, coords: 'Travessa Dr Claudio Damasceno, Sao Paulo, SP' }, // IPI
+        { id: 6, coords: '-23.522546,-46.663235' }  // Vago
     ];
 
     // ======== FETCH TRAFFIC VIA PROXY ========
@@ -1091,3 +1230,20 @@ setInterval(checkNightMode, 60 * 60 * 1000);
 
 // Inicia API do Trânsito pelo Worker
 initGoogleMapsTraffic();
+
+function checkInitialTrafficPage() {
+    const now = new Date();
+    now.setHours(now.getHours() - 1);
+
+    const d = now.getDay();
+    const h = now.getHours();
+
+    let shouldBePage2 = false;
+    if (d === 5 && h >= 18) shouldBePage2 = true;
+    else if (d === 6 || d === 0) shouldBePage2 = true;
+
+    if (shouldBePage2 && typeof window.toggleTrafficSlider === 'function' && !window.isTrafficSlidePage2) {
+        window.toggleTrafficSlider();
+    }
+}
+checkInitialTrafficPage();
