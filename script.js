@@ -1,4 +1,5 @@
-﻿// Configurações
+// Configurações
+let nightModeOverride = null;
 const UPDATE_WEATHER_INTERVAL = 30 * 60 * 1000; // 30 min
 const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
 const LATITUDE = -23.5276;
@@ -36,7 +37,61 @@ const bg2 = document.getElementById('bg2');
 const timeEl = document.getElementById('time');
 const dateEl = document.getElementById('date');
 
-// ======== RELÓGIO & DATA ========
+// ======== SCROLLS NATIVOS CLICÁVEIS (LENTOS & INTEGRAIS) ========
+function smoothScroll(element, direction, targetPosition, duration) {
+    const startPosition = direction === 'x' ? element.scrollLeft : element.scrollTop;
+    const distance = targetPosition - startPosition;
+    let startTime = null;
+
+    function animation(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+        
+        // Curva de velocidade (começa e termina suavemente)
+        const ease = progress < 0.5 
+            ? 2 * progress * progress 
+            : -1 + (4 - 2 * progress) * progress;
+
+        if (direction === 'x') {
+            element.scrollLeft = startPosition + (distance * ease);
+        } else {
+            element.scrollTop = startPosition + (distance * ease);
+        }
+
+        if (timeElapsed < duration) {
+            requestAnimationFrame(animation);
+        }
+    }
+
+    requestAnimationFrame(animation);
+}
+
+window.scrollHourly = function () {
+    const el = document.getElementById('hourly-forecast');
+    if (!el) return;
+    if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
+        // Volta pro inicio
+        smoothScroll(el, 'x', 0, 800); // 800 milissegundos
+    } else {
+        // Rola pra direita TOTALMENTE pro final de uma vez
+        smoothScroll(el, 'x', el.scrollWidth - el.clientWidth, 800);
+    }
+}
+
+window.scrollDaily = function () {
+    const el = document.getElementById('daily-forecast');
+    if (!el) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+        // Volta pro topo
+        smoothScroll(el, 'y', 0, 800);
+    } else {
+        // Rola pra baixo TOTALMENTE pro final de uma vez
+        smoothScroll(el, 'y', el.scrollHeight - el.clientHeight, 800);
+    }
+}
+
+// ======== FUNÇÕES AUXILIARES DA PLANTA ========
 function updateClock() {
     const now = new Date();
     // Ajuste de fuso horário (-1h) para tablets desatualizados
@@ -86,6 +141,20 @@ function updateClock() {
         // Segunda-feira 00:00:00 -> Volta para a página 1
         if (typeof window.toggleTrafficSlider === 'function' && window.isTrafficSlidePage2) {
             window.toggleTrafficSlider();
+        }
+    }
+
+    // Automação do Modo Noturno (Baseado no relógio principal)
+    if (nightModeOverride === null) {
+        const overlay = document.getElementById('night-mode-overlay');
+        if (overlay) {
+            // Utiliza o 'h' já calculado com ajuste de fuso
+            const isNight = h >= 23 || h < 5;
+            if (isNight && !overlay.classList.contains('active')) {
+                overlay.classList.add('active');
+            } else if (!isNight && overlay.classList.contains('active')) {
+                overlay.classList.remove('active');
+            }
         }
     }
 }
@@ -146,8 +215,8 @@ async function fetchWeather() {
         const proxyBase = 'https://tablet.alison-zago.workers.dev/?url=';
 
         const currentUrl = `https://weather.googleapis.com/v1/currentConditions:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}`;
-        const hourlyUrl = `https://weather.googleapis.com/v1/forecast/hours:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}&pageSize=8`;
-        const dailyUrl = `https://weather.googleapis.com/v1/forecast/days:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}&pageSize=8`;
+        const hourlyUrl = `https://weather.googleapis.com/v1/forecast/hours:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}&pageSize=12`;
+        const dailyUrl = `https://weather.googleapis.com/v1/forecast/days:lookup?key=${apiKey}&location.latitude=${LATITUDE}&location.longitude=${LONGITUDE}&pageSize=14`;
 
         // AQI pelo OpenMeteo via Proxy
         const apiProtocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
@@ -254,6 +323,7 @@ async function fetchWeather() {
 
             // Começa do dia seguinte ao hoje (todayIndex + 1)
             for (let i = todayIndex + 1; i < dailyData.forecastDays.length; i++) {
+
                 const dData = dailyData.forecastDays[i];
 
                 const dDate = new Date(dData.displayDate.year, dData.displayDate.month - 1, dData.displayDate.day);
@@ -281,6 +351,7 @@ async function fetchWeather() {
                     </div>
                 `;
             }
+
             dailyContainer.innerHTML = dailyHtml;
         }
 
@@ -914,7 +985,6 @@ async function initBattery() {
 initBattery();
 
 // ======== MODO NOTURNO ========
-let nightModeOverride = null;
 
 window.toggleNightMode = function () {
     const overlay = document.getElementById('night-mode-overlay');
@@ -929,26 +999,7 @@ window.toggleNightMode = function () {
     }
 }
 
-function checkNightMode() {
-    if (nightModeOverride !== null) return; // User manually toggled
-    const overlay = document.getElementById('night-mode-overlay');
-    if (!overlay) return;
 
-    const now = new Date();
-    // Ajuste de fuso horário (-1h) idêntico ao relógio principal
-    now.setHours(now.getHours() - 1);
-
-    const hour = now.getHours();
-    const isNight = hour >= 23 || hour < 5;
-
-    if (isNight && !overlay.classList.contains('active')) {
-        overlay.classList.add('active');
-    } else if (!isNight && overlay.classList.contains('active')) {
-        overlay.classList.remove('active');
-    }
-}
-setInterval(checkNightMode, 60000);
-checkNightMode();
 
 // ======== MODAL DE NOTÍCIAS ========
 window.openNewsModal = function (index) {
@@ -976,6 +1027,86 @@ window.closeNewsModal = function () {
 document.getElementById('news-modal').addEventListener('click', function (e) {
     if (e.target === this) closeNewsModal();
 });
+
+// ======== MODAL TRÂNSITO PERSONALIZADO ========
+window.openCustomTrafficModal = function (e) {
+    if (e) e.stopPropagation();
+    document.getElementById('ct-results').style.display = 'none';
+    document.getElementById('ct-destination-input').value = '';
+    document.getElementById('custom-traffic-modal').classList.add('active');
+    document.getElementById('ct-destination-input').focus();
+}
+
+window.closeCustomTrafficModal = function () {
+    document.getElementById('custom-traffic-modal').classList.remove('active');
+}
+
+document.getElementById('custom-traffic-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeCustomTrafficModal();
+});
+
+window.fetchCustomTraffic = async function () {
+    const inputDest = document.getElementById('ct-destination-input').value.trim();
+    const inputOrig = document.getElementById('ct-origin-input').value.trim();
+    if (!inputDest || !inputOrig) return;
+
+    const originsParam = encodeURIComponent(inputOrig);
+    const destinationsParam = encodeURIComponent(inputDest);
+    const workerUrl = `https://tablet.alison-zago.workers.dev/traffic?origins=${originsParam}&destinations=${destinationsParam}`;
+
+    document.getElementById('ct-loading').style.display = 'block';
+    document.getElementById('ct-results').style.display = 'none';
+
+    try {
+        const response = await fetch(workerUrl);
+
+        if (!response.ok) throw new Error("Erro na API");
+
+        const data = await response.json();
+        document.getElementById('ct-loading').style.display = 'none';
+
+        if (data.status === 'OK' && data.rows && data.rows[0]) {
+            const element = data.rows[0].elements[0];
+
+            if (element && element.status === 'OK') {
+                const durationSecs = element.duration_in_traffic ? element.duration_in_traffic.value : element.duration.value;
+                const staticSecs = element.duration.value;
+
+                const diffSecs = durationSecs - staticSecs;
+                const diffMins = Math.round(diffSecs / 60);
+
+                const timeEl = document.getElementById('ct-time');
+                const statusEl = document.getElementById('ct-status');
+
+                timeEl.textContent = Math.round(durationSecs / 60) + ' min';
+
+                if (diffMins <= 2) {
+                    timeEl.style.color = 'var(--text-primary)';
+                    statusEl.textContent = 'Trânsito Normal (Bom!)';
+                    statusEl.style.color = '#4ade80'; // Verde
+                } else if (diffMins <= 8) {
+                    timeEl.style.color = '#facc15'; // Amarelo
+                    statusEl.textContent = 'Trânsito atual: +' + diffMins + ' min';
+                    statusEl.style.color = '#facc15';
+                } else {
+                    timeEl.style.color = '#ef4444'; // Vermelho
+                    statusEl.textContent = 'Trânsito atual: +' + diffMins + ' min';
+                    statusEl.style.color = '#ef4444';
+                }
+
+                document.getElementById('ct-results').style.display = 'block';
+            } else {
+                alert("Não foi possível calcular a rota para esse destino.");
+            }
+        } else {
+            alert("Não foi possível encontrar uma rota para o destino informado.");
+        }
+    } catch (err) {
+        document.getElementById('ct-loading').style.display = 'none';
+        alert("Erro ao buscar a rota. Tente novamente.");
+        console.error(err);
+    }
+}
 
 // ======== API DO TRÂNSITO (GOOGLE MAPS VIA PROXY) ========
 
@@ -1223,10 +1354,8 @@ if (typeof renderCalendar === 'function') {
     setInterval(renderCalendar, 60 * 60 * 1000);
 }
 
-// Bateria e Modo Noturno
+// Bateria
 initBattery();
-checkNightMode();
-setInterval(checkNightMode, 60 * 60 * 1000);
 
 // Inicia API do Trânsito pelo Worker
 initGoogleMapsTraffic();

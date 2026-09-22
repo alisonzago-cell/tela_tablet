@@ -21,8 +21,10 @@
 
     <main class="dashboard-container">
         <!-- Linha 1, Col 1: Bloco do Relógio -->
-        <section class="panel clock-panel" style="position: relative; border: none; background: none; box-shadow: none;">
-            <div class="glass" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></div>
+        <section class="panel clock-panel"
+            style="position: relative; border: none; background: none; box-shadow: none; border-radius: 20px;">
+            <div class="glass" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; border-radius: 20px;">
+            </div>
             <h1 id="time" class="time-display">00:00</h1>
             <h2 id="date" class="date-display" style="position: relative; z-index: 1;">Carregando data...</h2>
         </section>
@@ -57,7 +59,8 @@
                 </h3>
             </div>
             <div style="flex-grow: 1; overflow: hidden; position: relative;">
-                <div id="traffic-slider" onclick="toggleTrafficSlider()" style="cursor: pointer; display: flex; width: 200%; height: 100%; transition: transform 0.4s ease-in-out; transform: translateX(0%);">
+                <div id="traffic-slider" onclick="toggleTrafficSlider()"
+                    style="cursor: pointer; display: flex; width: 200%; height: 100%; transition: transform 0.4s ease-in-out; transform: translateX(0%);">
 
                     <!-- Página 1 -->
                     <!-- Compatibilidade com navegadores antigos: gap removido, usando margin-bottom nos itens -->
@@ -125,8 +128,8 @@
                             </div>
                         </div>
                         <!-- Bloquinho Vago -->
-                        <div
-                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                        <div onclick="openCustomTrafficModal(event)"
+                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer;">
                             <div style="font-size: 2rem; color: var(--text-secondary); padding: 10px 0;">
                                 <i class="ph ph-magnifying-glass"></i>
                             </div>
@@ -142,14 +145,18 @@
         </section>
 
         <!-- Linha 2, Col 1 e 2: Bloco do Clima (Atual + Próximos Dias) -->
-        <section class="panel weather-panel glass" style="padding: 16px; display: flex; flex-direction: row; gap: 0px;">
+        <section class="panel weather-panel glass"
+            style="padding: 16px; display: grid; grid-template-columns: 420px 1fr; gap: 10px;">
 
             <!-- Esquerda: Clima Atual -->
-            <div style="flex: 0 0 416px; display: flex; flex-direction: column; margin-right: 10px;">
+            <div style="display: flex; flex-direction: column; min-width: 0;">
                 <div class="weather-header" style="margin-bottom: 10px;">
-                    <h3 id="location-title" style="margin-bottom: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="fetchWeather()" title="Atualizar Clima">
+                    <h3 id="location-title"
+                        style="margin-bottom: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
+                        onclick="fetchWeather()" title="Atualizar Clima">
                         <i class="ph ph-map-pin"></i> Bom Retiro, São Paulo
-                        <i class="ph ph-arrows-clockwise" id="weather-refresh-icon" style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.5s; margin-left: 2px;"></i>
+                        <i class="ph ph-arrows-clockwise" id="weather-refresh-icon"
+                            style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.5s; margin-left: 2px;"></i>
                     </h3>
                 </div>
 
@@ -172,18 +179,19 @@
                         <div class="detail"><i class="ph ph-leaf"></i> Ar:&nbsp;<span id="current-aqi">--</span></div>
                     </div>
                 </div>
-                <div class="weather-hourly" id="hourly-forecast">
+                <div class="weather-hourly hide-scroll" id="hourly-forecast" onclick="scrollHourly()"
+                    style="display: flex; overflow-x: scroll; overflow-y: hidden; padding-bottom: 5px; min-width: 0; cursor: pointer;">
                     <!-- Forecast items injected via JS -->
                 </div>
             </div>
 
             <!-- Direita: Próximos Dias -->
-            <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+            <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
                 <div class="weather-header" style="margin-bottom: 10px;">
                     <h3 style="margin-bottom: 0;"><i class="ph ph-calendar-blank"></i> Próximos Dias</h3>
                 </div>
-                <div class="weather-daily" id="daily-forecast"
-                    style="display: flex; flex-direction: column; gap: 4px; overflow-y: auto;">
+                <div class="weather-daily hide-scroll" id="daily-forecast" onclick="scrollDaily()"
+                    style="flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: scroll; min-height: 0; padding-right: 5px; cursor: pointer;">
                     <!-- Injected via JS -->
                 </div>
             </div>
@@ -307,6 +315,40 @@
             <h2 id="modal-title">Título</h2>
             <div id="modal-source">Fonte</div>
             <div id="modal-desc">Descrição</div>
+        </div>
+    </div>
+
+    <!-- Modal de Trânsito Personalizado -->
+    <div id="custom-traffic-modal">
+        <div class="modal-content">
+            <i class="ph ph-x close-modal" onclick="closeCustomTrafficModal()"></i>
+            <h2 id="ct-modal-title" style="margin-bottom: 15px;">Buscar Rota (Carro)</h2>
+
+            <div style="text-align: left; margin-bottom: 10px;">
+                <label
+                    style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 5px; display: block;">Origem:</label>
+                <input type="text" id="ct-origin-input" value="Rua Jaraguá, 737 - Bom Retiro - São Paulo/SP"
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; font-size: 1rem; outline: none; box-sizing: border-box;">
+            </div>
+
+            <div style="text-align: left; margin-bottom: 20px;">
+                <label
+                    style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 5px; display: block;">Destino:</label>
+                <input type="text" id="ct-destination-input" placeholder="Digite o destino..."
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; font-size: 1rem; outline: none; box-sizing: border-box;">
+            </div>
+
+            <button onclick="fetchCustomTraffic()"
+                style="width: 100%; padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: white; font-weight: bold; cursor: pointer; font-size: 1rem; margin-bottom: 20px;">Buscar</button>
+
+            <div id="ct-results"
+                style="display: none; text-align: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px;">
+                <div style="font-size: 1.2rem; margin-bottom: 5px;">Tempo estimado: <span id="ct-time"
+                        style="font-weight: bold;">--</span></div>
+                <div id="ct-status" style="font-size: 0.95rem;">--</div>
+            </div>
+            <div id="ct-loading" style="display: none; text-align: center; color: var(--text-secondary);">Buscando
+                rota...</div>
         </div>
     </div>
 

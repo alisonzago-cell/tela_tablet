@@ -2,7 +2,8 @@
     --glass-bg: rgba(0, 0, 0, 0.25);
     /* Fundo mais escuro/opaco para compensar falta de blur */
     --glass-border: rgba(255, 255, 255, 0.1);
-    --text-primary: rgba(255, 255, 255, 0.85); /* Opacidade de 85% para os textos em geral */
+    --text-primary: rgba(255, 255, 255, 0.85);
+    /* Opacidade de 85% para os textos em geral */
     --text-secondary: rgba(226, 232, 240, 0.85);
 
     /* Variáveis de escurecimento (opacidade) do fundo global */
@@ -121,9 +122,13 @@ body {
 }
 
 /* Modal de Notícias */
-#news-modal {
+#news-modal,
+#custom-traffic-modal {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
     z-index: 10000;
@@ -134,7 +139,8 @@ body {
     transition: opacity 0.3s ease;
 }
 
-#news-modal.active {
+#news-modal.active,
+#custom-traffic-modal.active {
     display: flex;
     opacity: 1;
 }
@@ -208,14 +214,27 @@ body {
 }
 
 @keyframes spinWeather {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
 }
 
 @keyframes floatWeather {
-    0% { transform: translate(-50%, -50%); }
-    50% { transform: translate(-50%, -55%); }
-    100% { transform: translate(-50%, -50%); }
+    0% {
+        transform: translate(-50%, -50%);
+    }
+
+    50% {
+        transform: translate(-50%, -55%);
+    }
+
+    100% {
+        transform: translate(-50%, -50%);
+    }
 }
 
 .panel-header h3 i,
@@ -245,8 +264,10 @@ body {
     margin-bottom: 5px;
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     letter-spacing: -3px;
-    color: #ffffff; /* Seta cor sólida para não herdar a opacidade do text-primary */
-    opacity: 0.70; /* Opacidade exata solicitada */
+    color: #ffffff;
+    /* Seta cor sólida para não herdar a opacidade do text-primary */
+    opacity: 0.70;
+    /* Opacidade exata solicitada */
     position: relative;
     z-index: 10000;
 }
@@ -268,7 +289,8 @@ body {
 .weather-current {
     display: flex;
     align-items: stretch;
-    justify-content: space-between;
+    justify-content: flex-start;
+    /* Alterado de space-between para podermos usar margin-right no temp-main */
     margin-bottom: 10px;
 }
 
@@ -276,13 +298,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 1;
+    /* <--- Ajuste a distância entre o Temp Atual e o Max/Min aqui */
     font-size: 8.25rem;
     font-weight: 600;
-    flex: 1;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     background: rgba(0, 0, 0, 0.2);
     border-radius: 12px;
-    margin-right: 12px;
     padding: 0 10px;
     color: var(--text-primary);
     position: relative;
@@ -292,7 +314,8 @@ body {
 .temp-main span {
     z-index: 2;
     color: #ffffff;
-    opacity: 0.70; /* Proteção anti burn-in */
+    opacity: 0.70;
+    /* Proteção anti burn-in */
 }
 
 /* Temp Min Max */
@@ -374,7 +397,8 @@ body {
     padding: 11px 0px;
     border-radius: 8px;
     min-width: 48.25px;
-    margin-right: 4px;
+    margin-right: 4.6px;
+    /* <--- Ajuste a distância horizontal entre as horas aqui */
     height: 85px;
     gap: -1px;
 }
@@ -384,6 +408,13 @@ body {
 }
 
 /* Daily Forecast Styles */
+#daily-forecast {
+    max-height: 280px;
+    margin-right: -11px;
+    /* <--- Use números negativos (ex: -11px, -16px) para aproximar a gaiola da borda direita do painel */
+    /* <--- Ajuste a altura visual (a "gaiola") aqui */
+}
+
 .daily-item {
     display: flex;
     justify-content: space-between;
@@ -620,6 +651,7 @@ body {
     opacity: 0;
     transition: opacity 1.5s ease-in-out;
 }
+
 #night-mode-overlay.active {
     opacity: 1;
 }
@@ -762,4 +794,18 @@ input:checked+.slider:before {
 
 .slider.round:before {
     border-radius: 50%;
+}
+
+.hide-scroll {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.hide-scroll::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+    background: transparent;
 }
