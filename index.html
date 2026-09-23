@@ -195,18 +195,36 @@
                         <span id="current-temp">--°</span>
                     </div>
                     <div class="weather-details">
+                        <!-- Bloco do Max/Min -->
+                        <!-- Ajuste o 'margin-top: 0px;' abaixo para empurrar os números grandes de Max/Min para baixo -->
                         <div
-                            style="font-size: 2.6rem; justify-content: center; margin-bottom: 6px; font-weight: 800; display: flex;">
+                            style="font-size: 2.6rem; justify-content: center; margin-bottom: 6px; font-weight: 800; display: flex; margin-top: 0px;">
                             <span id="current-max" style="color: #ef4444;">--°</span>
                             <span style="color: var(--text-primary); font-weight: 400; margin: 0 4px;">/</span>
                             <span id="current-min" style="color: #60a5fa;">--°</span>
                         </div>
-                        <div class="detail"><i class="ph ph-drop"></i> <span id="current-humidity">--%</span>&nbsp;Umid
+                        <!-- Bloco de Ícones (Umid, Vento, Chuva, Ar) -->
+                        <!-- Ajuste o 'margin-top: 0px;' abaixo para empurrar todos esses ícones mais para baixo -->
+                        <div style="margin-top: 0px;">
+                            <!-- Use 'top: 2px;' abaixo para mover o ícone da Gota para cima ou para baixo -->
+                            <div class="detail"><i class="ph ph-drop" style="position: relative; top: 2px;"></i> <span
+                                    id="current-humidity">--%</span>&nbsp;Umid</div>
+
+                            <!-- Use 'top: 2px;' abaixo para mover o ícone de Vento -->
+                            <div class="detail"><i class="ph ph-wind" style="position: relative; top: 2px;"></i> <span
+                                    id="current-wind">--</span>&nbsp;km/h
+                            </div>
+
+                            <!-- Use 'top: 2px;' abaixo para mover o ícone de Chuva -->
+                            <div class="detail"><i class="ph ph-cloud-rain" style="position: relative; top: 2px;"></i>
+                                <span id="current-rain">--%</span>&nbsp;Chuva
+                            </div>
+
+                            <!-- Use 'top: 2px;' abaixo para mover o ícone de Folha (Ar) -->
+                            <div class="detail"><i class="ph ph-leaf" style="position: relative; top: 2px;"></i>
+                                Ar:&nbsp;<span id="current-aqi">--</span>
+                            </div>
                         </div>
-                        <div class="detail"><i class="ph ph-wind"></i> <span id="current-wind">--</span>&nbsp;km/h</div>
-                        <div class="detail"><i class="ph ph-cloud-rain"></i> <span
-                                id="current-rain">--%</span>&nbsp;Chuva</div>
-                        <div class="detail"><i class="ph ph-leaf"></i> Ar:&nbsp;<span id="current-aqi">--</span></div>
                     </div>
                 </div>
                 <div class="weather-hourly hide-scroll" id="hourly-forecast" onclick="scrollHourly()"
