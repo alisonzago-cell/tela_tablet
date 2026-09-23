@@ -181,6 +181,25 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
+// ======== STATUS DA REDE (WI-FI) ========
+function updateNetworkStatus() {
+    const wifiIcon = document.getElementById('wifi-icon');
+    if (!wifiIcon) return;
+    
+    if (navigator.onLine) {
+        wifiIcon.className = 'ph ph-wifi-high';
+        wifiIcon.style.color = '#10b981'; // verde
+        wifiIcon.title = "Wi-Fi: Conectado";
+    } else {
+        wifiIcon.className = 'ph ph-wifi-slash';
+        wifiIcon.style.color = '#ef4444'; // vermelho
+        wifiIcon.title = "Wi-Fi: Desconectado";
+    }
+}
+window.addEventListener('online', updateNetworkStatus);
+window.addEventListener('offline', updateNetworkStatus);
+updateNetworkStatus();
+
 // ======== BACKGROUND ROTATIVO ========
 let currentBgIndex = 0;
 let isBg1Active = true;

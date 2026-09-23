@@ -26,6 +26,32 @@
             <div class="glass"
                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; border-radius: 20px;">
             </div>
+
+            <!-- Barra de Status (Flutuante, não desalinha o relógio) -->
+            <!-- Ajuste a distância das laterais alterando o 'padding: 0 15px;' abaixo (15px é a distância da esquerda e direita) -->
+            <div
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 22px; background: rgba(0,0,0,0.3); border-radius: 20px 20px 0 0; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; font-size: 0.75rem; color: var(--text-secondary); z-index: 2; box-sizing: border-box;">
+
+                <!-- Esquerda: Versão -->
+                <!-- Para mover este texto para baixo, adicionei o 'margin-top: 1px;' abaixo -->
+                <div style="font-weight: 600; opacity: 0.5; margin-top: 1px;">
+                    Versão: 1.0
+                </div>
+
+                <!-- Direita: Rede e Bateria -->
+                <!-- Use 'margin-top: 1px;' abaixo para mover todo esse bloco para baixo/cima -->
+                <div style="display: flex; align-items: center; gap: 12px; margin-top: 1px;">
+                    <!-- Wifi -->
+                    <i class="ph ph-wifi-high" id="wifi-icon" style="font-size: 0.9rem;" title="Wi-Fi"></i>
+
+                    <!-- Bateria -->
+                    <!-- Ajuste o tamanho do ícone de bateria alterando o 'font-size: 0.9rem;' no <i> abaixo -->
+                    <div id="battery-status" style="display: flex; align-items: center; gap: 4px;" title="Bateria">
+                        <span id="battery-level" style="font-weight: 600;">--%</span>
+                        <i class="ph ph-battery-full" id="battery-icon" style="font-size: 1rem;"></i>
+                    </div>
+                </div>
+            </div>
             <h1 id="time" class="time-display">00:00</h1>
             <h2 id="date" class="date-display" style="position: relative; z-index: 1;">Carregando data...</h2>
         </section>
@@ -34,12 +60,8 @@
         <section class="panel news-panel glass">
             <div class="panel-header"
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <h3 style="font-size: 1.0rem; margin-bottom: 10;"><i class="ph ph-newspaper"></i> Últimas Notícias</h3>
-                <div id="battery-status"
-                    style="font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: center; gap: 2px;"
-                    title="Bateria">
-                    <i class="ph ph-battery-full" id="battery-icon"></i> <span id="battery-level">--%</span>
-                </div>
+                <h3 style="font-size: 1.0rem; margin-bottom: 10px;"><i class="ph ph-newspaper"></i> Últimas Notícias
+                </h3>
             </div>
             <div class="news-list-container" id="news-list-container">
                 <div class="news-list" id="news-list">

@@ -60,16 +60,20 @@ body {
 
 /* Grid Layout */
 .dashboard-container {
-    width: 1024px; /* Tamanho fixo original do tablet mantido aqui */
+    width: 1024px;
+    /* Tamanho fixo original do tablet mantido aqui */
     height: 600px;
     display: grid;
     grid-template-columns: 448px 1fr 0.5fr 0.5fr;
     grid-template-rows: auto 1fr;
-    grid-row-gap: 5px; /* -3px da margem vertical da segunda linha */
-    grid-column-gap: 5px; /* -3px lateralmente de cada coluna */
+    grid-row-gap: 5px;
+    /* -3px da margem vertical da segunda linha */
+    grid-column-gap: 5px;
+    /* -3px lateralmente de cada coluna */
     row-gap: 5px;
     column-gap: 5px;
-    padding: 5px; /* -3px da borda externa geral (equilibra as pontas) */
+    padding: 5px;
+    /* -3px da borda externa geral (equilibra as pontas) */
 }
 
 .clock-panel {
@@ -281,7 +285,10 @@ body {
     font-size: 9.5rem;
     font-weight: 700;
     line-height: 1;
-    margin-bottom: 5px;
+    margin-top: 10px;
+    /* <--- Ajuste a distância entre o relógio e o topo do painel aqui (ex: 20px para empurrar para baixo) */
+    margin-bottom: -1px;
+    /* <--- Ajuste a distância entre o relógio grande e a data aqui (aumente para afastar) */
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     letter-spacing: -3px;
     color: #ffffff;
@@ -293,6 +300,8 @@ body {
 }
 
 .date-display {
+    margin-top: 0px;
+    /* <--- Você também pode usar isto para afastar a data para baixo */
     font-size: 2rem;
     font-weight: 800;
     color: #ffffff;
@@ -441,7 +450,7 @@ body {
     justify-content: space-between;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
-    padding: 10px 12px;
+    padding: 4px 12px;
     border-radius: 8px;
     font-size: .95rem;
     margin-bottom: 8px;
