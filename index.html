@@ -34,20 +34,26 @@
 
                 <!-- Esquerda: Versão -->
                 <!-- Para mover este texto para baixo, adicionei o 'margin-top: 1px;' abaixo -->
-                <div style="font-weight: 600; opacity: 0.5; margin-top: 1px;">
-                    Versão: 1.0
+                <div style="font-weight: 600; opacity: 0.5; margin-top: 2px;">
+                    Versão: 1.1
                 </div>
 
                 <!-- Direita: Rede e Bateria -->
-                <!-- Use 'margin-top: 1px;' abaixo para mover todo esse bloco para baixo/cima -->
-                <div style="display: flex; align-items: center; gap: 12px; margin-top: 1px;">
+                <!-- Use 'margin-top: 1px;' para mover todo esse bloco para baixo/cima -->
+                <!-- Ajuste o 'margin-right: 12px;' no Wifi para alterar a distância entre o Wifi e a Bateria -->
+                <div style="display: flex; align-items: center; margin-top: 1px;">
                     <!-- Wifi -->
-                    <i class="ph ph-wifi-high" id="wifi-icon" style="font-size: 0.9rem;" title="Wi-Fi"></i>
+                    <i class="ph ph-wifi-high" id="wifi-icon"
+                        style="font-size: 0.9rem; margin-right: 5px; margin-top: -1px;" title="Wi-Fi"></i>
 
                     <!-- Bateria -->
-                    <!-- Ajuste o tamanho do ícone de bateria alterando o 'font-size: 0.9rem;' no <i> abaixo -->
-                    <div id="battery-status" style="display: flex; align-items: center; gap: 4px;" title="Bateria">
-                        <span id="battery-level" style="font-weight: 600;">--%</span>
+                    <!-- Ajuste o tamanho do ícone de bateria alterando o 'font-size: 1rem;' no <i> abaixo -->
+                    <div id="battery-status" style="display: flex; align-items: center; margin-top: -1px;"
+                        title="Bateria">
+                        <!-- Ajuste o 'margin-top: 2px;' abaixo para mover APENAS os números da bateria -->
+                        <!-- Ajuste o 'margin-right: 4px;' abaixo para a distância entre os números e o ícone de bateria -->
+                        <span id="battery-level"
+                            style="font-weight: 600; margin-top: 2px; margin-right: 4px;">--%</span>
                         <i class="ph ph-battery-full" id="battery-icon" style="font-size: 1rem;"></i>
                     </div>
                 </div>
