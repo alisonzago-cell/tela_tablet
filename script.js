@@ -602,7 +602,7 @@ if (newsContainer) {
 function autoScrollNews() {
     if (!isDraggingNews && newsContainer) {
         if (newsList.scrollHeight > newsContainer.clientHeight) {
-            scrollPos += 0.35; /* <--- Ajuste a VELOCIDADE das notícias aqui (Ex: 0.50 para mais rápido, 0.15 para mais lento) */
+            scrollPos += 0.55; /* <--- Ajuste a VELOCIDADE das notícias aqui (Ex: 0.50 para mais rápido, 0.15 para mais lento) */
             if (scrollPos >= newsList.scrollHeight - newsContainer.clientHeight) {
                 scrollPos = 0; // volta pro topo
             }
