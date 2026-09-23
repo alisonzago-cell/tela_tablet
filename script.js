@@ -47,10 +47,10 @@ function smoothScroll(element, direction, targetPosition, duration) {
         if (startTime === null) startTime = currentTime;
         const timeElapsed = currentTime - startTime;
         const progress = Math.min(timeElapsed / duration, 1);
-        
+
         // Curva de velocidade (começa e termina suavemente)
-        const ease = progress < 0.5 
-            ? 2 * progress * progress 
+        const ease = progress < 0.5
+            ? 2 * progress * progress
             : -1 + (4 - 2 * progress) * progress;
 
         if (direction === 'x') {
@@ -602,7 +602,7 @@ if (newsContainer) {
 function autoScrollNews() {
     if (!isDraggingNews && newsContainer) {
         if (newsList.scrollHeight > newsContainer.clientHeight) {
-            scrollPos += 0.24; // velocidade do scroll 20% mais rápida (era 0.2)
+            scrollPos += 0.35; /* <--- Ajuste a VELOCIDADE das notícias aqui (Ex: 0.50 para mais rápido, 0.15 para mais lento) */
             if (scrollPos >= newsList.scrollHeight - newsContainer.clientHeight) {
                 scrollPos = 0; // volta pro topo
             }

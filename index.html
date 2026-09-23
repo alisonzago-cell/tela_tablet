@@ -49,8 +49,8 @@
 
         <!-- Linha 1, Col 3: Bloco de Trânsito Condensado -->
         <section class="panel traffic-panel glass" style="padding: 0; display: flex; flex-direction: column;">
-            <div class="panel-header"
-                style="padding: 12px 12px 0 12px; margin-bottom: 0px; display: flex; justify-content: space-between; align-items: center;">
+            <div class="panel-header traffic-header"
+                style="padding: 12px 12px 0 12px; display: flex; justify-content: space-between; align-items: center;">
                 <h3 onclick="fetchTraffic()" title="Atualizar Trânsito"
                     style="font-size: 1.0rem; margin-bottom: 0; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                     <i class="ph ph-car"></i> Trânsito
@@ -65,7 +65,7 @@
                     <!-- Página 1 -->
                     <!-- Compatibilidade com navegadores antigos: gap removido, usando margin-bottom nos itens -->
                     <div
-                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center;">
+                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: flex-start;">
                         <!-- Bloquinho TV -->
                         <div
                             style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 5px;">
@@ -104,7 +104,7 @@
                     <!-- Página 2 -->
                     <!-- Compatibilidade com navegadores antigos: gap removido, usando margin-bottom nos itens -->
                     <div
-                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: center;">
+                        style="width: 50%; height: 100%; padding: 0px 8px 8px 8px; display: flex; flex-direction: column; justify-content: flex-start;">
                         <!-- Bloquinho JAG -->
                         <div
                             style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 5px;">
@@ -128,9 +128,10 @@
                             </div>
                         </div>
                         <!-- Bloquinho Vago -->
+                        <!-- Ajuste a 'height' (altura) deste bloco alterando o valor de 'height: 54px' abaixo -->
                         <div onclick="openCustomTrafficModal(event)"
-                            style="background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer;">
-                            <div style="font-size: 2rem; color: var(--text-secondary); padding: 10px 0;">
+                            style="height: 54px; background: rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer;">
+                            <div style="font-size: 2rem; color: var(--text-secondary);">
                                 <i class="ph ph-magnifying-glass"></i>
                             </div>
                             <div style="display:none;">
@@ -191,7 +192,7 @@
                     <h3 style="margin-bottom: 0;"><i class="ph ph-calendar-blank"></i> Próximos Dias</h3>
                 </div>
                 <div class="weather-daily hide-scroll" id="daily-forecast" onclick="scrollDaily()"
-                    style="flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: scroll; min-height: 0; padding-right: 5px; cursor: pointer;">
+                    style="flex: 1; display: flex; flex-direction: column; overflow-y: scroll; min-height: 0; padding-right: 5px; cursor: pointer;">
                     <!-- Injected via JS -->
                 </div>
             </div>
