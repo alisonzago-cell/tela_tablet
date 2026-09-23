@@ -67,27 +67,47 @@ function smoothScroll(element, direction, targetPosition, duration) {
     requestAnimationFrame(animation);
 }
 
+let resetHourlyTimeout;
 window.scrollHourly = function () {
     const el = document.getElementById('hourly-forecast');
     if (!el) return;
+
+    // Cancela o timer de retorno anterior, se existir
+    clearTimeout(resetHourlyTimeout);
+
     if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
         // Volta pro inicio
         smoothScroll(el, 'x', 0, 800); // 800 milissegundos
     } else {
         // Rola pra direita TOTALMENTE pro final de uma vez
         smoothScroll(el, 'x', el.scrollWidth - el.clientWidth, 800);
+
+        // Configura o retorno automático após 30 segundos
+        resetHourlyTimeout = setTimeout(() => {
+            if (el.scrollLeft > 0) smoothScroll(el, 'x', 0, 800);
+        }, 30000); // 30 segundos
     }
 }
 
+let resetDailyTimeout;
 window.scrollDaily = function () {
     const el = document.getElementById('daily-forecast');
     if (!el) return;
+
+    // Cancela o timer de retorno anterior, se existir
+    clearTimeout(resetDailyTimeout);
+
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
         // Volta pro topo
         smoothScroll(el, 'y', 0, 800);
     } else {
         // Rola pra baixo TOTALMENTE pro final de uma vez
         smoothScroll(el, 'y', el.scrollHeight - el.clientHeight, 800);
+
+        // Configura o retorno automático após 30 segundos
+        resetDailyTimeout = setTimeout(() => {
+            if (el.scrollTop > 0) smoothScroll(el, 'y', 0, 800);
+        }, 30000); // 30 segundos
     }
 }
 
@@ -602,7 +622,7 @@ if (newsContainer) {
 function autoScrollNews() {
     if (!isDraggingNews && newsContainer) {
         if (newsList.scrollHeight > newsContainer.clientHeight) {
-            scrollPos += 0.55; /* <--- Ajuste a VELOCIDADE das notícias aqui (Ex: 0.50 para mais rápido, 0.15 para mais lento) */
+            scrollPos += 0.6; /* <--- Ajuste a VELOCIDADE das notícias aqui (Ex: 0.50 para mais rápido, 0.15 para mais lento) */
             if (scrollPos >= newsList.scrollHeight - newsContainer.clientHeight) {
                 scrollPos = 0; // volta pro topo
             }
