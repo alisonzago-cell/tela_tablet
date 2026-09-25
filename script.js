@@ -1092,27 +1092,7 @@ async function initBattery() {
 }
 initBattery();
 
-// FUNÇÃO DE DEBUG: Teste manual de bateria
-window.testBatterySafety = function (level) {
-    const lowBattOverlay = document.getElementById('low-battery-overlay');
-    if (!lowBattOverlay) return;
 
-    // Simula a queda de energia e reseta o lastLevel para garantir que toque
-    lastLowBatteryLevel = level;
-    lowBattOverlay.style.display = 'flex';
-
-    let beepCount = 0;
-    let targetBeeps = level <= 5 ? 5 : 3;
-
-    let beepInterval = setInterval(() => {
-        const h = new Date().getHours();
-        const isQuietHours = (h >= 22 || h < 7);
-        if (typeof triggerBeep === 'function' && !isQuietHours) triggerBeep();
-
-        beepCount++;
-        if (beepCount >= targetBeeps) clearInterval(beepInterval);
-    }, 1000);
-};
 
 // ======== MODO NOTURNO ========
 
