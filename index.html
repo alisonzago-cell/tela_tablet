@@ -34,8 +34,12 @@
 
                 <!-- Esquerda: Versão -->
                 <!-- Para mover este texto para baixo, adicionei o 'margin-top: 1px;' abaixo -->
-                <div style="font-weight: 600; opacity: 0.5; margin-top: 2px;">
-                    Versão: 1.1
+                <div style="display: flex; align-items: center; opacity: 0.5; margin-top: 2px;">
+                    <span style="font-weight: 600;">Versão: 1.1</span>
+                    <!-- Ícone de aviso que aparece quando o clima do Google falha e usamos a segunda camada -->
+                    <i class="ph ph-warning-circle" id="weather-fallback-warning"
+                        style="display: none; color: #fbbf24; font-size: 0.9rem; margin-left: 8px;"
+                        title="Aviso: Usando fallback da chance de chuva para os ícones"></i>
                 </div>
 
                 <!-- Direita: Rede e Bateria -->
@@ -411,6 +415,24 @@
     </div>
 
     <div id="night-mode-overlay"></div>
+
+    <!-- MODO SEGURANÇA BATERIA -->
+    <div id="low-battery-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 100000; flex-direction: column; align-items: center; justify-content: center; color: #ef4444;"
+        onclick="this.style.display='none'">
+        <i class="ph ph-warning-circle" style="font-size: 50px; animation: pulse 1s infinite;"></i>
+        <div style="font-size: .75rem; font-weight: bold; margin-top: 5px;">BATERIA CRÍTICA</div>
+    </div>
+
+    <!-- BOTOES DE DEBUG DA BATERIA (Remover quando quiser) -->
+    <div style="position: fixed; bottom: 10px; right: 10px; z-index: 999999; display: flex; gap: 10px;">
+        <button onclick="testBatterySafety(9)"
+            style="padding: 10px 15px; background: rgba(255,0,0,0.5); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; font-weight: bold; backdrop-filter: blur(5px);">Simular
+            9%</button>
+        <button onclick="testBatterySafety(4)"
+            style="padding: 10px 15px; background: rgba(255,0,0,0.5); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; font-weight: bold; backdrop-filter: blur(5px);">Simular
+            4%</button>
+    </div>
 
     <script src="script.js"></script>
 

@@ -5,6 +5,23 @@ const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
 const LATITUDE = -23.5276;
 const LONGITUDE = -46.6384;
 
+// Segunda Camada: Fallback de clima se a imagem do Google não existir
+window.handleMissingWeatherIcon = function (imgElement, prob) {
+    if (imgElement.dataset.fallbackApplied) return; // Evita loop infinito
+    imgElement.dataset.fallbackApplied = "true";
+
+    // Mostra o ícone de aviso na barra de status
+    const warnIcon = document.getElementById('weather-fallback-warning');
+    if (warnIcon) warnIcon.style.display = 'inline-block';
+
+    // Aplica a lógica da segunda camada (chance de chuva)
+    if (prob >= 75) imgElement.src = 'icones/light/thunderstorms.svg';
+    else if (prob >= 50) imgElement.src = 'icones/light/heavy_rain.svg';
+    else if (prob >= 30) imgElement.src = 'icones/light/showers_rain.svg';
+    else if (prob >= 15) imgElement.src = 'icones/light/partly_cloudy_day.svg';
+    else imgElement.src = 'icones/light/clear_day.svg';
+};
+
 // Função genérica para embaralhar array
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -169,7 +186,11 @@ function updateClock() {
         const overlay = document.getElementById('night-mode-overlay');
         if (overlay) {
             // Utiliza o 'h' já calculado com ajuste de fuso
-            const isNight = h >= 23 || h < 5;
+            // <--- AJUSTE O HORÁRIO NOTURNO AQUI --->
+            // h >= 23 significa que começa às 22:00
+            // h < 5 significa que termina às 05:00 da manhã
+            const isNight = h >= 22 || h < 4;
+
             if (isNight && !overlay.classList.contains('active')) {
                 overlay.classList.add('active');
             } else if (!isNight && overlay.classList.contains('active')) {
@@ -185,7 +206,7 @@ updateClock();
 function updateNetworkStatus() {
     const wifiIcon = document.getElementById('wifi-icon');
     if (!wifiIcon) return;
-    
+
     if (navigator.onLine) {
         wifiIcon.className = 'ph ph-wifi-high';
         wifiIcon.style.color = '#10b981'; // verde
@@ -378,9 +399,29 @@ async function fetchWeather() {
                 const rainNight = (dData.nighttimeForecast && dData.nighttimeForecast.precipitation && dData.nighttimeForecast.precipitation.probability) ? dData.nighttimeForecast.precipitation.probability.percent : 0;
                 const pProb = Math.max(rainDay, rainNight);
 
+                // Lógica oficial do Google: Mapeamento direto 1:1 com os arquivos da pasta 'light'
+                let mainIconFile = "clear_day.svg"; // Padrão
+
+                // Pegamos o código exato que o Google envia para o dia
+                if (dData.daytimeForecast && dData.daytimeForecast.condition && dData.daytimeForecast.condition.iconCode) {
+                    mainIconFile = dData.daytimeForecast.condition.iconCode.toLowerCase() + ".svg";
+                } else if (pProb >= 75) {
+                    // Mini fallback caso a API falhe em enviar a condição
+                    mainIconFile = "thunderstorms.svg";
+                } else if (pProb >= 50) {
+                    mainIconFile = "heavy_rain.svg";
+                } else if (pProb >= 30) {
+                    mainIconFile = "showers_rain.svg";
+                } else if (pProb >= 15) {
+                    mainIconFile = "partly_cloudy_day.svg";
+                }
+
                 dailyHtml += `
                     <div class="daily-item">
-                        <span class="daily-day">${dayName}, ${dayPadded}/${monthPadded}</span>
+                        <span class="daily-day">
+                            <img src="icones/light/${mainIconFile}" class="daily-day-icon" alt="clima" onerror="handleMissingWeatherIcon(this, ${pProb})" />
+                            ${dayName}, ${dayPadded}/${monthPadded}
+                        </span>
                         <span class="daily-rain"><i class="ph ph-drop"></i> ${pProb}%</span>
                         <div class="daily-temps">
                             <span class="temp-max">${tMax}°</span>
@@ -443,7 +484,10 @@ async function fetchWeather() {
             for (let i = 1; i <= 7; i++) {
                 fakeDaily += `
                 <div class="daily-item" style="opacity: 0.5;">
-                    <span class="daily-day">Segunda, 01/01</span>
+                    <span class="daily-day">
+                        <img src="icones/light/showers_rain.svg" class="daily-day-icon" alt="clima" onerror="handleMissingWeatherIcon(this, 15)" />
+                        Segunda, 01/01
+                    </span>
                     <span class="daily-rain"><i class="ph ph-drop"></i> 15%</span>
                     <div class="daily-temps">
                         <span class="temp-max">28°</span>
@@ -938,6 +982,7 @@ const BATTERY_MIN = 20; // Liga a tomada se a bateria chegar neste valor ou meno
 const BATTERY_MAX = 81; // Desliga a tomada se a bateria chegar neste valor ou mais
 
 let webhookCooldown = false;
+let lastLowBatteryLevel = null; // Controle para apitar apenas 1x a cada queda de %
 
 async function initBattery() {
     if ('getBattery' in navigator) {
@@ -972,6 +1017,30 @@ async function initBattery() {
                     showBatteryPopup('Tomada desligada.', '#ef4444', 'ph-power');
                 }
                 prevChargingState = battery.charging;
+
+                // ======== MODO SEGURANÇA BATERIA CRÍTICA ========
+                const lowBattOverlay = document.getElementById('low-battery-overlay');
+                if (!battery.charging && level <= 10) {
+                    if (lastLowBatteryLevel !== level) {
+                        lastLowBatteryLevel = level;
+                        if (lowBattOverlay) lowBattOverlay.style.display = 'flex';
+
+                        let beepCount = 0;
+                        let targetBeeps = level <= 5 ? 5 : 3;
+
+                        let beepInterval = setInterval(() => {
+                            const h = new Date().getHours();
+                            const isQuietHours = (h >= 22 || h < 7);
+                            if (typeof triggerBeep === 'function' && !isQuietHours) triggerBeep();
+
+                            beepCount++;
+                            if (beepCount >= targetBeeps) clearInterval(beepInterval);
+                        }, 1000);
+                    }
+                } else if (battery.charging || level > 10) {
+                    lastLowBatteryLevel = null;
+                    if (lowBattOverlay) lowBattOverlay.style.display = 'none';
+                }
 
                 checkBatteryAutomation(level, battery.charging);
             }
@@ -1022,6 +1091,28 @@ async function initBattery() {
     }
 }
 initBattery();
+
+// FUNÇÃO DE DEBUG: Teste manual de bateria
+window.testBatterySafety = function (level) {
+    const lowBattOverlay = document.getElementById('low-battery-overlay');
+    if (!lowBattOverlay) return;
+
+    // Simula a queda de energia e reseta o lastLevel para garantir que toque
+    lastLowBatteryLevel = level;
+    lowBattOverlay.style.display = 'flex';
+
+    let beepCount = 0;
+    let targetBeeps = level <= 5 ? 5 : 3;
+
+    let beepInterval = setInterval(() => {
+        const h = new Date().getHours();
+        const isQuietHours = (h >= 22 || h < 7);
+        if (typeof triggerBeep === 'function' && !isQuietHours) triggerBeep();
+
+        beepCount++;
+        if (beepCount >= targetBeeps) clearInterval(beepInterval);
+    }, 1000);
+};
 
 // ======== MODO NOTURNO ========
 

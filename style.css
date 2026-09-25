@@ -450,31 +450,58 @@ body {
     justify-content: space-between;
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
-    padding: 4px 12px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 8px;
+    /* <--- Ajuste a distância da borda ESQUERDA aqui */
+    padding-right: 8px;
+    /* <--- Ajuste a distância da borda DIREITA (espaço depois de Max/Min) aqui */
     border-radius: 8px;
     font-size: .95rem;
-    margin-bottom: 8px;
+    margin-bottom: 9px;
     /* <--- Ajuste a distância vertical entre os dias aqui */
 }
 
 .daily-day {
     flex: 2;
     font-weight: 600;
+    position: relative;
+    top: 1px;
+    /* <--- Ajuste a posição vertical (mais para cima ou baixo) do texto do dia aqui (use números negativos para subir) */
+    font-size: 1rem;
+    /* <--- Ajuste o tamanho da fonte dos nomes dos dias aqui */
+}
+
+.daily-day-icon {
+    margin-right: 3px;
+    /* Espaço entre a imagem e o nome do dia */
+    width: 20px;
+    /* <--- Ajuste a LARGURA da imagem do clima aqui */
+    height: 20px;
+    /* <--- Ajuste a ALTURA da imagem do clima aqui */
+    vertical-align: middle;
+    position: relative;
+    top: -1.25px;
+    /* <--- Ajuste a posição vertical (mais para cima ou baixo) das imagens aqui */
 }
 
 .daily-rain {
     flex: 1;
     color: var(--text-secondary);
-    font-size: 1.1rem;
+    font-size: 1.0rem;
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding-left: 0px;
+
+    gap: 0px;
+    margin-right: -35px;
+    /* <--- Ajuste a distância entre a chuva e as temperaturas Max/Min aqui (aumente para afastar) */
 }
 
 .daily-rain i {
     position: relative;
-    top: 2px;
+    top: 1px;
+    font-size: 1.0rem;
+    /* <--- Ajuste o tamanho APENAS do ícone de gotinha aqui */
 }
 
 .daily-temps {
@@ -483,7 +510,7 @@ body {
     justify-content: flex-end;
     gap: 0px;
     font-weight: 800;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
 .temp-max {
@@ -676,7 +703,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.9);
+    /* <--- Ajuste a escuridão do modo noturno aqui (0.7 é 70% escuro. Use 0.85 ou 0.9 para escurecer MAIS) */
     z-index: 9999;
     pointer-events: none;
     opacity: 0;
@@ -839,4 +867,11 @@ input:checked+.slider:before {
     width: 0;
     height: 0;
     background: transparent;
+}
+
+/* Animação para o alerta de bateria crítica */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.1; }
+    100% { opacity: 1; }
 }
