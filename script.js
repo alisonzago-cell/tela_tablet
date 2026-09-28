@@ -1,6 +1,6 @@
 // Configurações
 let nightModeOverride = null;
-const UPDATE_WEATHER_INTERVAL = 30 * 60 * 1000; // 30 min
+const UPDATE_WEATHER_INTERVAL = 45 * 60 * 1000; // 45 min
 const CHANGE_BG_INTERVAL = 5 * 60 * 1000; // 5 min
 const LATITUDE = -23.5276;
 const LONGITUDE = -46.6384;
@@ -189,7 +189,7 @@ function updateClock() {
             // <--- AJUSTE O HORÁRIO NOTURNO AQUI --->
             // h >= 23 significa que começa às 22:00
             // h < 5 significa que termina às 05:00 da manhã
-            const isNight = h >= 22 || h < 4;
+            const isNight = h >= 22 || h < 5;
 
             if (isNight && !overlay.classList.contains('active')) {
                 overlay.classList.add('active');
@@ -1231,6 +1231,9 @@ window.toggleTrafficSlider = function () {
     } else {
         slider.style.transform = 'translateX(0)';
     }
+
+    // Força atualização ao trocar de aba (caso o conteúdo esteja velho)
+    if (typeof fetchTraffic === 'function') fetchTraffic();
 }
 
 // Suporte a swipe para o Painel de Trânsito
@@ -1282,17 +1285,22 @@ window.initGoogleMapsTraffic = async function () {
     ];
 
     // ======== FETCH TRAFFIC VIA PROXY ========
-    // Fazemos a chamada para o nosso Worker no Cloudflare que atua como um Proxy Reverso.
-    // Isso é necessário porque o tablet (Android 4.2.2 / Chrome 70) é incompatível com o SDK moderno do Google Maps.
-    // O Worker faz a chamada Rest API para o Google, contorna problemas de CORS e devolve o JSON limpo.
+    let lastTrafficFetchTime = 0;
+
     window.fetchTraffic = function () {
         const refreshIcon = document.getElementById('traffic-refresh-icon');
         if (refreshIcon) {
             refreshIcon.style.transform = 'rotate(180deg)';
         }
 
+        const isPage2 = window.isTrafficSlidePage2 === true;
+        const activeDestinations = destinations.filter(d => {
+            if (isPage2) return d.id >= 4 && d.id <= 6;
+            else return d.id >= 1 && d.id <= 3;
+        });
+
         const originsParam = encodeURIComponent(origin);
-        const destinationsParam = encodeURIComponent(destinations.map(d => d.coords).join('|'));
+        const destinationsParam = encodeURIComponent(activeDestinations.map(d => d.coords).join('|'));
         const workerUrl = `https://tablet.alison-zago.workers.dev/traffic?origins=${originsParam}&destinations=${destinationsParam}`;
 
         fetch(workerUrl)
@@ -1307,18 +1315,22 @@ window.initGoogleMapsTraffic = async function () {
 
                 if (data.status !== 'OK' || !data.rows || !data.rows[0]) {
                     console.error("Distance Matrix API retornou erro ou payload vazio:", data);
-                    destinations.forEach(dest => {
+                    activeDestinations.forEach(dest => {
                         const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
                         if (oldStatusEl) { oldStatusEl.textContent = 'Erro API'; oldStatusEl.style.color = '#ef4444'; }
                         const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
                         if (newStatusEl) { newStatusEl.textContent = 'Erro API'; newStatusEl.style.color = '#ef4444'; }
                     });
+                    if (typeof updateTrafficFreshness === 'function') updateTrafficFreshness(0, true);
                     return;
                 }
 
+                lastTrafficFetchTime = new Date().getTime();
+                if (typeof updateTrafficFreshness === 'function') updateTrafficFreshness(0);
+
                 const elements = data.rows[0].elements;
 
-                destinations.forEach((dest, index) => {
+                activeDestinations.forEach((dest, index) => {
                     const element = elements[index];
 
                     if (!element) {
@@ -1405,18 +1417,98 @@ window.initGoogleMapsTraffic = async function () {
                 console.error("ERRO CRÍTICO NO TRÂNSITO:", err.message);
 
                 // Exibe fallback visual para que o usuário saiba que houve falha (ex: worker fora do ar)
-                destinations.forEach(dest => {
+                const isPage2 = window.isTrafficSlidePage2 === true;
+                const activeDestinations = destinations.filter(d => {
+                    if (isPage2) return d.id >= 4 && d.id <= 6;
+                    else return d.id >= 1 && d.id <= 3;
+                });
+
+                activeDestinations.forEach(dest => {
                     const newStatusEl = document.getElementById(`tf-status-${dest.id}`);
                     if (newStatusEl) {
                         newStatusEl.textContent = 'Falha Conexão';
                         newStatusEl.style.color = '#ef4444';
                     }
                 });
+                if (typeof updateTrafficFreshness === 'function') updateTrafficFreshness(0, true);
             });
     }
 
-    fetchTraffic();
-    setInterval(fetchTraffic, 15 * 60 * 1000);
+    window.updateTrafficFreshness = function (elapsedMins, isError = false) {
+        const freshnessEl = document.getElementById('traffic-freshness');
+        if (!freshnessEl) return;
+
+        if (isError) {
+            freshnessEl.innerHTML = `<span style="color: #ef4444; font-size: .75rem; animation: pulse 1s infinite;">●</span>`;
+            return;
+        }
+
+        if (lastTrafficFetchTime === 0) {
+            freshnessEl.innerHTML = '';
+            return;
+        }
+
+        let dotColor = '#9ca3af'; // Cinza (default/muito antigo)
+        if (elapsedMins <= 15) dotColor = '#10b981'; // Verde
+        else if (elapsedMins <= 30) dotColor = '#fbbf24'; // Amarelo
+        else if (elapsedMins <= 60) dotColor = '#f97316'; // Laranja
+
+        // Para mudar o TAMANHO da bolinha, ajuste o 'font-size: 1rem;' abaixo
+        freshnessEl.innerHTML = `<span style="color: ${dotColor}; font-size: 1rem;">●</span>`;
+    }
+
+    function checkTrafficSchedule() {
+        const now = new Date();
+        const d = now.getDay();
+        const h = now.getHours();
+        const m = now.getMinutes();
+
+        let intervalMins = 30; // Default
+
+        if (d === 0) {
+            // DOMINGO (FDS Relaxado)
+            if (h >= 0 && h < 5 || (h === 5 && m < 30)) intervalMins = 9999;
+            else if (h >= 9 && h < 19) intervalMins = 45;
+            else intervalMins = 60;
+        } else if (d === 6) {
+            // SÁBADO
+            if (h >= 0 && h < 5 || (h === 5 && m < 30)) intervalMins = 9999;
+            else if (h >= 9 && h < 19) intervalMins = 30;
+            else intervalMins = 60;
+        } else {
+            // DIAS ÚTEIS
+            if (d === 5 && h >= 19) {
+                intervalMins = 60; // Sexta noite conta como fds
+            } else {
+                if (h >= 0 && h < 5 || (h === 5 && m < 30)) {
+                    intervalMins = 9999; // Madrugada
+                } else if (h >= 6 && h < 8) {
+                    intervalMins = 10; // Pico Manhã
+                } else if (h >= 11 && h < 16) {
+                    if (h === 11 && m < 30) intervalMins = 30;
+                    else intervalMins = 15; // Pico Tarde
+                } else if (h >= 19) {
+                    intervalMins = 60; // Noite
+                } else {
+                    intervalMins = 30; // Comercial
+                }
+            }
+        }
+
+        const nowMs = now.getTime();
+        const elapsedMins = lastTrafficFetchTime === 0 ? 9999 : (nowMs - lastTrafficFetchTime) / (1000 * 60);
+
+        if (lastTrafficFetchTime !== 0) {
+            updateTrafficFreshness(Math.floor(elapsedMins));
+        }
+
+        if (elapsedMins >= intervalMins) {
+            fetchTraffic();
+        }
+    }
+
+    checkTrafficSchedule();
+    setInterval(checkTrafficSchedule, 60 * 1000); // Roda a checagem a cada 1 minuto
 }
 
 

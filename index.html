@@ -35,7 +35,7 @@
                 <!-- Esquerda: Versão -->
                 <!-- Para mover este texto para baixo, adicionei o 'margin-top: 1px;' abaixo -->
                 <div style="display: flex; align-items: center; opacity: 0.5; margin-top: 2px;">
-                    <span style="font-weight: 600;">Versão: 1.2</span>
+                    <span style="font-weight: 600;">Versão: 1.3</span>
                     <!-- Ícone de aviso que aparece quando o clima do Google falha e usamos a segunda camada -->
                     <i class="ph ph-warning-circle" id="weather-fallback-warning"
                         style="display: none; color: #fbbf24; font-size: 0.9rem; margin-left: 8px;"
@@ -89,6 +89,9 @@
                     <i class="ph ph-car"></i> Trânsito
                     <i class="ph ph-arrows-clockwise" id="traffic-refresh-icon"
                         style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.5s;"></i>
+                    <!-- Para afastar a bolinha e a hora do ícone de atualizar, mude o 'margin-left: 4px;' abaixo -->
+                    <span id="traffic-freshness"
+                        style="font-size: 0.65rem; opacity: 0.8; margin-left: -5px; display: flex; align-items: center; gap: 2px; font-weight: normal;"></span>
                 </h3>
             </div>
             <div style="flex-grow: 1; overflow: hidden; position: relative;">
