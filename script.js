@@ -422,7 +422,7 @@ async function fetchWeather() {
                             <img src="icones/light/${mainIconFile}" class="daily-day-icon" alt="clima" onerror="handleMissingWeatherIcon(this, ${pProb})" />
                             ${dayName}, ${dayPadded}/${monthPadded}
                         </span>
-                        <span class="daily-rain"><i class="ph ph-drop"></i> ${pProb}%</span>
+                        <span class="daily-rain"><i class="ph ph-drop" style="position: relative; top: -2px;"></i> ${pProb}%</span>
                         <div class="daily-temps">
                             <span class="temp-max">${tMax}°</span>
                             <span style="color: var(--text-primary); font-weight: 400;">/</span>
@@ -488,7 +488,7 @@ async function fetchWeather() {
                         <img src="icones/light/showers_rain.svg" class="daily-day-icon" alt="clima" onerror="handleMissingWeatherIcon(this, 15)" />
                         Segunda, 01/01
                     </span>
-                    <span class="daily-rain"><i class="ph ph-drop"></i> 15%</span>
+                    <span class="daily-rain"><i class="ph ph-drop" style="position: relative; top: 0px;"></i> 15%</span>
                     <div class="daily-temps">
                         <span class="temp-max">28°</span>
                         <span style="color: var(--text-primary); font-weight: 400;">/</span>
@@ -1057,13 +1057,13 @@ async function initBattery() {
                 }, 4000); // Fica 4 segundos na tela
             }
 
-            function checkBatteryAutomation(level) {
+            function checkBatteryAutomation(level, isCharging) {
                 if (webhookCooldown) return;
 
-                if (level <= BATTERY_MIN) {
+                if (level <= BATTERY_MIN && !isCharging) {
                     console.log(`Bateria baixa (<= ${BATTERY_MIN}%). Ligando tomada...`);
                     triggerAutomation(WEBHOOK_ON);
-                } else if (level >= BATTERY_MAX) {
+                } else if (level >= BATTERY_MAX && isCharging) {
                     console.log(`Bateria alta (>= ${BATTERY_MAX}%). Desligando tomada...`);
                     triggerAutomation(WEBHOOK_OFF);
                 }
@@ -1084,8 +1084,8 @@ async function initBattery() {
             battery.addEventListener('levelchange', updateBattery);
             battery.addEventListener('chargingchange', updateBattery);
 
-            // Verificação redundante a cada 2 minutos (reenvia o sinal se a bateria não tiver saído do limite)
-            setInterval(updateBattery, 2 * 60 * 1000);
+            // Verificação redundante a cada 5 minutos (reenvia o sinal APENAS se a tomada tiver falhado)
+            setInterval(updateBattery, 5 * 60 * 1000);
 
         } catch (e) { console.error('Battery API error', e); }
     }
@@ -1578,3 +1578,30 @@ function checkInitialTrafficPage() {
     }
 }
 checkInitialTrafficPage();
+
+// ======== ROTAÇÃO DE VÍDEOS DE TESTE ========
+setTimeout(() => {
+    const bgVideo = document.getElementById('weather-bg-video');
+    if (bgVideo) {
+        const testVideos = [
+            'videos/__CHUVA.mp4',
+            'videos/__SOL.mp4',
+            'videos/__CHUVISCO.mp4',
+            'videos/__NUBLADO.mp4',
+            'videos/__SOL COM NUVENS.mp4',
+            'videos/__TEMPESTADE.mp4'
+        ];
+        let currentVideoIndex = 0;
+        let loopCount = 0;
+
+        bgVideo.addEventListener('ended', () => {
+            loopCount++;
+            if (loopCount >= 3) {
+                loopCount = 0;
+                currentVideoIndex = (currentVideoIndex + 1) % testVideos.length;
+                bgVideo.src = testVideos[currentVideoIndex];
+            }
+            bgVideo.play();
+        });
+    }
+}, 2000);

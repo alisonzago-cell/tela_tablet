@@ -35,7 +35,7 @@
                 <!-- Esquerda: Versão -->
                 <!-- Para mover este texto para baixo, adicionei o 'margin-top: 1px;' abaixo -->
                 <div style="display: flex; align-items: center; opacity: 0.5; margin-top: 2px;">
-                    <span style="font-weight: 600;">Versão: 1.3</span>
+                    <span style="font-weight: 600;">Versão: 1.35</span>
                     <!-- Ícone de aviso que aparece quando o clima do Google falha e usamos a segunda camada -->
                     <i class="ph ph-warning-circle" id="weather-fallback-warning"
                         style="display: none; color: #fbbf24; font-size: 0.9rem; margin-left: 8px;"
@@ -70,7 +70,8 @@
         <section class="panel news-panel glass">
             <div class="panel-header"
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <h3 style="font-size: 1.0rem; margin-bottom: 10px;"><i class="ph ph-newspaper"></i> Últimas Notícias
+                <h3 style="font-size: 1.0rem; margin-bottom: 10px;"><i class="ph ph-newspaper"
+                        style="position: relative; top: -1px;"></i> Últimas Notícias
                 </h3>
             </div>
             <div class="news-list-container" id="news-list-container">
@@ -86,12 +87,12 @@
                 style="padding: 12px 12px 0 12px; display: flex; justify-content: space-between; align-items: center;">
                 <h3 onclick="fetchTraffic()" title="Atualizar Trânsito"
                     style="font-size: 1.0rem; margin-bottom: 0; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                    <i class="ph ph-car"></i> Trânsito
+                    <i class="ph ph-car" style="position: relative; top: -2.5px;"></i> Trânsito
                     <i class="ph ph-arrows-clockwise" id="traffic-refresh-icon"
                         style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.5s;"></i>
                     <!-- Para afastar a bolinha e a hora do ícone de atualizar, mude o 'margin-left: 4px;' abaixo -->
                     <span id="traffic-freshness"
-                        style="font-size: 0.65rem; opacity: 0.8; margin-left: -5px; display: flex; align-items: center; gap: 2px; font-weight: normal;"></span>
+                        style="font-size: 0.65rem; opacity: 0.8; margin-left: -1px; display: flex; align-items: center; gap: 2px; font-weight: normal;"></span>
                 </h3>
             </div>
             <div style="flex-grow: 1; overflow: hidden; position: relative;">
@@ -191,7 +192,7 @@
                     <h3 id="location-title"
                         style="margin-bottom: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
                         onclick="fetchWeather()" title="Atualizar Clima">
-                        <i class="ph ph-map-pin"></i> Bom Retiro, São Paulo
+                        <i class="ph ph-map-pin" style="position: relative; top: -2px;"></i> Bom Retiro, São Paulo
                         <i class="ph ph-arrows-clockwise" id="weather-refresh-icon"
                             style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.5s; margin-left: 2px;"></i>
                     </h3>
@@ -199,7 +200,10 @@
 
                 <div class="weather-current">
                     <div class="temp-main">
-                        <span id="current-temp">--°</span>
+                        <!-- O vídeo fica como background, o z-index 1 coloca ele atrás, opacity controla a força -->
+                        <video id="weather-bg-video" src="videos/__CHUVA.mp4" autoplay muted playsinline
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.8; filter: saturate(2.5);"></video>
+                        <span id="current-temp" style="position: relative; z-index: 2;">--°</span>
                     </div>
                     <div class="weather-details">
                         <!-- Bloco do Max/Min -->
