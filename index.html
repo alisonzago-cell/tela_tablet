@@ -35,7 +35,7 @@
                 <!-- Esquerda: Versão -->
                 <!-- Para mover este texto para baixo, adicionei o 'margin-top: 1px;' abaixo -->
                 <div style="display: flex; align-items: center; opacity: 0.5; margin-top: 2px;">
-                    <span style="font-weight: 600;">Versão: 1.35</span>
+                    <span style="font-weight: 600;">Versão: 1.36</span>
                     <!-- Ícone de aviso que aparece quando o clima do Google falha e usamos a segunda camada -->
                     <i class="ph ph-warning-circle" id="weather-fallback-warning"
                         style="display: none; color: #fbbf24; font-size: 0.9rem; margin-left: 8px;"
@@ -71,7 +71,7 @@
             <div class="panel-header"
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                 <h3 style="font-size: 1.0rem; margin-bottom: 10px;"><i class="ph ph-newspaper"
-                        style="position: relative; top: 0px;"></i> Últimas Notícias
+                        style="position: relative; top: 0.5px;"></i> Últimas Notícias
                 </h3>
             </div>
             <div class="news-list-container" id="news-list-container">
@@ -89,7 +89,7 @@
                     style="font-size: 1.0rem; margin-bottom: 0; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                     <i class="ph ph-car" style="position: relative; top: -1px;"></i> Trânsito
                     <i class="ph ph-arrows-clockwise" id="traffic-refresh-icon"
-                        style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.5s; margin-left: 3px; top: -1px;"></i>
+                        style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.5s; margin-left: 3px; top: -0.5px;"></i>
                     <!-- Para afastar a bolinha e a hora do ícone de atualizar, mude o 'margin-left: 4px;' abaixo -->
                     <span id="traffic-freshness"
                         style="font-size: 0.65rem; opacity: 0.8; margin-left: -1px; display: flex; align-items: center; gap: 2px; font-weight: normal;"></span>
@@ -192,9 +192,9 @@
                     <h3 id="location-title"
                         style="margin-bottom: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
                         onclick="fetchWeather()" title="Atualizar Clima">
-                        <i class="ph ph-map-pin" style="position: relative; top: -0.5px;"></i> Bom Retiro, São Paulo
+                        <i class="ph ph-map-pin" style="position: relative; top: 0.5px;"></i> Bom Retiro, São Paulo
                         <i class="ph ph-arrows-clockwise" id="weather-refresh-icon"
-                            style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.5s; margin-left: 2px;"></i>
+                            style="font-size: 0.8rem; color: var(--text-secondary); transition: transform 0.5s; margin-left: 3px; top: -0.5px;"></i>
                     </h3>
                 </div>
 
