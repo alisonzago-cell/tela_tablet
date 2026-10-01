@@ -347,6 +347,44 @@ async function fetchWeather() {
             // Chance de chuva atual
             const precipPercent = (currData.precipitation && currData.precipitation.probability) ? currData.precipitation.probability.percent : 0;
             document.getElementById('current-rain').textContent = `${precipPercent}%`;
+
+            // ======== MAPEAMENTO DE VÍDEO DE FUNDO REAL ========
+            const bgVideo = document.getElementById('weather-bg-video');
+            if (bgVideo && currData.condition && currData.condition.iconCode) {
+                const iconCode = currData.condition.iconCode.toLowerCase();
+                let videoName = 'nublado.mp4'; // fallback padrão
+
+                // Identifica se é noite por segurança (caso o ícone não especifique)
+                const nowForVideo = new Date();
+                const isNightTime = nowForVideo.getHours() < 6 || nowForVideo.getHours() >= 18;
+                const isNightIcon = iconCode.includes('night') || (!iconCode.includes('day') && isNightTime);
+
+                if (iconCode.includes('clear_night') || iconCode.includes('partly_cloudy_night') || iconCode.includes('mostly_cloudy_night')) {
+                    videoName = 'noite.mp4';
+                } else if (iconCode.includes('clear') || iconCode.includes('sunny')) {
+                    videoName = 'sol.mp4';
+                } else if (iconCode.includes('cloudy_night')) {
+                    videoName = 'noite.mp4';
+                } else if (iconCode.includes('partly_cloudy') || iconCode.includes('mostly_cloudy')) {
+                    videoName = 'sol_com_nuvens.mp4';
+                } else if (iconCode.includes('cloudy') || iconCode.includes('fog') || iconCode.includes('haze')) {
+                    videoName = 'nublado.mp4';
+                } else if (iconCode.includes('scattered_showers')) {
+                    videoName = isNightIcon ? 'lua_com_chuva.mp4' : 'sol_com_chuva.mp4';
+                } else if (iconCode.includes('thunderstorm') || iconCode.includes('heavy_rain')) {
+                    videoName = 'tempestade.mp4';
+                } else if (iconCode.includes('rain') || iconCode.includes('showers')) {
+                    videoName = isNightIcon ? 'lua_com_chuva.mp4' : 'chuva.mp4';
+                } else if (iconCode.includes('drizzle')) {
+                    videoName = 'chuvisco.mp4';
+                }
+
+                const newSrc = `videos/${videoName}`;
+                // Troca o vídeo apenas se ele for diferente do atual, para não recarregar atoa
+                if (!bgVideo.src.includes(newSrc)) {
+                    bgVideo.src = newSrc;
+                }
+            }
         }
 
         // Horas futuras (Google)
@@ -1579,29 +1617,5 @@ function checkInitialTrafficPage() {
 }
 checkInitialTrafficPage();
 
-// ======== ROTAÇÃO DE VÍDEOS DE TESTE ========
-setTimeout(() => {
-    const bgVideo = document.getElementById('weather-bg-video');
-    if (bgVideo) {
-        const testVideos = [
-            'videos/chuva.mp4',
-            'videos/sol.mp4',
-            'videos/chuvisco.mp4',
-            'videos/nublado.mp4',
-            'videos/sol_com_nuvens.mp4',
-            'videos/tempestade.mp4'
-        ];
-        let currentVideoIndex = 0;
-        let loopCount = 0;
+// ======== FIM ========
 
-        bgVideo.addEventListener('ended', () => {
-            loopCount++;
-            if (loopCount >= 3) {
-                loopCount = 0;
-                currentVideoIndex = (currentVideoIndex + 1) % testVideos.length;
-                bgVideo.src = testVideos[currentVideoIndex];
-            }
-            bgVideo.play();
-        });
-    }
-}, 2000);
