@@ -422,7 +422,7 @@ async function fetchWeather() {
                             <img src="icones/light/${mainIconFile}" class="daily-day-icon" alt="clima" onerror="handleMissingWeatherIcon(this, ${pProb})" />
                             ${dayName}, ${dayPadded}/${monthPadded}
                         </span>
-                        <span class="daily-rain"><i class="ph ph-drop" style="position: relative; top: -2px;"></i> ${pProb}%</span>
+                        <span class="daily-rain"><i class="ph ph-drop" style="position: relative; top: -0.5px;"></i> ${pProb}%</span>
                         <div class="daily-temps">
                             <span class="temp-max">${tMax}°</span>
                             <span style="color: var(--text-primary); font-weight: 400;">/</span>
