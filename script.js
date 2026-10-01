@@ -1584,12 +1584,12 @@ setTimeout(() => {
     const bgVideo = document.getElementById('weather-bg-video');
     if (bgVideo) {
         const testVideos = [
-            'videos/__CHUVA.mp4',
-            'videos/__SOL.mp4',
-            'videos/__CHUVISCO.mp4',
-            'videos/__NUBLADO.mp4',
-            'videos/__SOL COM NUVENS.mp4',
-            'videos/__TEMPESTADE.mp4'
+            'https://alisonzago-cell.github.io/tela_tablet/videos/__CHUVA.mp4',
+            'https://alisonzago-cell.github.io/tela_tablet/videos/__SOL.mp4',
+            'https://alisonzago-cell.github.io/tela_tablet/videos/__CHUVISCO.mp4',
+            'https://alisonzago-cell.github.io/tela_tablet/videos/__NUBLADO.mp4',
+            'https://alisonzago-cell.github.io/tela_tablet/videos/__SOL COM NUVENS.mp4',
+            'https://alisonzago-cell.github.io/tela_tablet/videos/__TEMPESTADE.mp4'
         ];
         let currentVideoIndex = 0;
         let loopCount = 0;
