@@ -348,43 +348,6 @@ async function fetchWeather() {
             const precipPercent = (currData.precipitation && currData.precipitation.probability) ? currData.precipitation.probability.percent : 0;
             document.getElementById('current-rain').textContent = `${precipPercent}%`;
 
-            // ======== MAPEAMENTO DE VÍDEO DE FUNDO REAL ========
-            const bgVideo = document.getElementById('weather-bg-video');
-            if (bgVideo && currData.condition && currData.condition.iconCode) {
-                const iconCode = currData.condition.iconCode.toLowerCase();
-                let videoName = 'nublado.mp4'; // fallback padrão
-
-                // Identifica se é noite por segurança (caso o ícone não especifique)
-                const nowForVideo = new Date();
-                const isNightTime = nowForVideo.getHours() < 6 || nowForVideo.getHours() >= 18;
-                const isNightIcon = iconCode.includes('night') || (!iconCode.includes('day') && isNightTime);
-
-                if (iconCode.includes('clear_night') || iconCode.includes('partly_cloudy_night') || iconCode.includes('mostly_cloudy_night')) {
-                    videoName = 'noite.mp4';
-                } else if (iconCode.includes('clear') || iconCode.includes('sunny')) {
-                    videoName = 'sol.mp4';
-                } else if (iconCode.includes('cloudy_night')) {
-                    videoName = 'noite.mp4';
-                } else if (iconCode.includes('partly_cloudy') || iconCode.includes('mostly_cloudy')) {
-                    videoName = 'sol_com_nuvens.mp4';
-                } else if (iconCode.includes('cloudy') || iconCode.includes('fog') || iconCode.includes('haze')) {
-                    videoName = 'nublado.mp4';
-                } else if (iconCode.includes('scattered_showers')) {
-                    videoName = isNightIcon ? 'lua_com_chuva.mp4' : 'sol_com_chuva.mp4';
-                } else if (iconCode.includes('thunderstorm') || iconCode.includes('heavy_rain')) {
-                    videoName = 'tempestade.mp4';
-                } else if (iconCode.includes('rain') || iconCode.includes('showers')) {
-                    videoName = isNightIcon ? 'lua_com_chuva.mp4' : 'chuva.mp4';
-                } else if (iconCode.includes('drizzle')) {
-                    videoName = 'chuvisco.mp4';
-                }
-
-                const newSrc = `videos/${videoName}`;
-                // Troca o vídeo apenas se ele for diferente do atual, para não recarregar atoa
-                if (!bgVideo.src.includes(newSrc)) {
-                    bgVideo.src = newSrc;
-                }
-            }
         }
 
         // Horas futuras (Google)
@@ -557,68 +520,186 @@ function toggleWeatherSlider() {
 // ======== NOTÍCIAS ========
 const newsList = document.getElementById('news-list');
 const RSS_FEEDS = [
+    { url: 'https://news.google.com/rss/search?q=site:folha.uol.com.br&hl=pt-BR&gl=BR&ceid=BR:pt-419', tag: 'Folha', class: 'tag-folha', source: 'Folha de S.Paulo' },
+    { url: 'https://news.google.com/rss/search?q=site:folha.uol.com.br+esporte&hl=pt-BR&gl=BR&ceid=BR:pt-419', tag: 'Esportes', class: 'tag-folha', source: 'Folha de S.Paulo' },
     { url: 'https://iclnoticias.com.br/feed/', tag: 'ICL', class: 'tag-icl', source: 'ICL Notícias' },
     { url: 'https://www.gazetaesportiva.com/feed/', tag: 'Esportes', class: 'tag-esportes', source: 'Gazeta Esportiva' },
-    { url: 'https://feeds.folha.uol.com.br/emcimadahora/rss091.xml', tag: 'Folha', class: 'tag-folha', source: 'Folha de S.Paulo' },
-    { url: 'https://feeds.folha.uol.com.br/esporte/rss091.xml', tag: 'Esportes', class: 'tag-folha', source: 'Folha de S.Paulo' },
-    { url: 'https://feeds.bbci.co.uk/portuguese/rss.xml', tag: 'BBC', class: 'tag-bbc', source: 'BBC Brasil' }
+    { url: 'https://feeds.bbci.co.uk/portuguese/rss.xml', tag: 'BBC', class: 'tag-bbc', source: 'BBC Brasil' },
+    { url: 'https://g1.globo.com/rss/g1/', tag: 'G1', class: 'tag-g1', source: 'G1' }
 ];
+
+// Limpeza de cache anterior
+try {
+    localStorage.removeItem('cached_news_items');
+    localStorage.removeItem('cached_news_items_v2');
+} catch (e) { }
 
 // ======= NOTÍCIAS =======
 let globalNewsItems = [];
 
-async function fetchAllNews() {
-    newsList.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">Carregando notícias...</div>';
+function decodeHtmlEntities(str) {
+    if (!str) return '';
+    const txt = document.createElement('textarea');
+    txt.innerHTML = str;
+    return txt.value;
+}
+
+async function fetchFeedItems(feed) {
+    // 1. Tentativa primária: BioFlow RSS-to-JSON (Gratuito, com CORS liberado)
     try {
-        let allItems = [];
-
-        for (const feed of RSS_FEEDS) {
-            // ======== FETCH NEWS VIA RSS2JSON ========
-            // Usamos a API pública rss2json.com para converter feeds XML (RSS) do G1/UOL em JSON puro.
-            // Isso evita a necessidade de escrevermos um parser XML complexo e resolve possíveis bloqueios de CORS.
-            const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                console.warn(`Aviso: Falha ao carregar o feed ${feed.source} (HTTP ${response.status})`);
-                continue; // Pula este feed e tenta o próximo
-            }
-
+        const url = `https://getbioflow.com/api/tools/feed?url=${encodeURIComponent(feed.url)}`;
+        const response = await fetch(url);
+        if (response.ok) {
             const data = await response.json();
+            if (data && Array.isArray(data.items) && data.items.length > 0) {
+                return data.items.map(it => {
+                    let cleanTitle = decodeHtmlEntities(it.title || '').trim();
+                    cleanTitle = cleanTitle.replace(/\s*-\s*Folha de S\.Paulo\s*$/i, '').trim();
 
-            if (data.status === 'ok' && data.items) {
-                const items = data.items.slice(0, 10); // 10 de cada
-                items.forEach(item => {
-                    if (item.title && item.title.trim().length >= 40) {
-                        // Filtros para remover notícias indesejadas (vídeos, onde assistir)
+                    return {
+                        title: cleanTitle,
+                        description: decodeHtmlEntities(it.summary || it.description || ''),
+                        pubDate: it.publishedAt || it.pubDate || '',
+                        link: it.link || it.url || ''
+                    };
+                });
+            }
+        }
+    } catch (e) {
+        console.warn(`[Notícias] BioFlow falhou para ${feed.source}:`, e);
+    }
+
+    // 2. Tentativa secundária: rss2json
+    try {
+        const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.status === 'ok' && Array.isArray(data.items) && data.items.length > 0) {
+                return data.items.map(it => {
+                    let cleanTitle = decodeHtmlEntities(it.title || '').trim();
+                    cleanTitle = cleanTitle.replace(/\s*-\s*Folha de S\.Paulo\s*$/i, '').trim();
+
+                    return {
+                        title: cleanTitle,
+                        description: decodeHtmlEntities(it.description || ''),
+                        pubDate: it.pubDate || '',
+                        link: it.link || ''
+                    };
+                });
+            }
+        }
+    } catch (e) {
+        console.warn(`[Notícias] rss2json falhou para ${feed.source}:`, e);
+    }
+
+    return [];
+}
+
+function renderNewsItems(items) {
+    if (!newsList) return;
+    newsList.innerHTML = '';
+
+    items.forEach((item, index) => {
+        let dateStr = '';
+        if (item.pubDate) {
+            try {
+                const d = new Date(item.pubDate);
+                if (!isNaN(d.getTime())) {
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const year = d.getFullYear();
+                    dateStr = ` • ${day}/${month}/${year}`;
+                }
+            } catch (e) { }
+        }
+
+        const el = document.createElement('div');
+        el.className = 'news-item';
+        el.style.cursor = 'pointer';
+        el.onclick = () => openNewsModal(index);
+        el.innerHTML = `
+            <div class="news-header">
+                <span class="news-tag ${item.tagClass}">${item.tag}</span>
+                <span class="news-source">Fonte: ${item.source}${dateStr}</span>
+            </div>
+            <div class="news-title">${item.title}</div>
+        `;
+        newsList.appendChild(el);
+    });
+
+    globalNewsItems = items;
+}
+
+async function fetchAllNews() {
+    const refreshIcon = document.getElementById('news-refresh-icon');
+    if (refreshIcon) refreshIcon.style.transform = 'rotate(180deg)';
+
+    // Se ainda não temos notícias na memória, tenta carregar do cache salvo no localStorage
+    if (globalNewsItems.length === 0) {
+        try {
+            const cached = localStorage.getItem('cached_news_items_v3');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    renderNewsItems(parsed);
+                }
+            }
+        } catch (e) { }
+
+        if (globalNewsItems.length === 0) {
+            newsList.innerHTML = '<div style="text-align: center; color: var(--text-secondary);">Carregando notícias...</div>';
+        }
+    }
+
+    try {
+        // Busca todos os feeds simultaneamente em paralelo
+        const feedPromises = RSS_FEEDS.map(async (feed) => {
+            try {
+                const items = await fetchFeedItems(feed);
+                const validItems = [];
+
+                items.slice(0, 10).forEach(item => {
+                    if (item.title && item.title.trim().length >= 30) {
                         const titleLower = item.title.toLowerCase();
 
-                        if (titleLower.includes('assista ao')) {
-                            return; // Ignora esta notícia
-                        }
-
+                        // Filtros de conteúdo indesejado
+                        if (titleLower.includes('assista ao')) return;
                         if (feed.tag === 'Esportes' && (titleLower.includes('onde assistir') || titleLower.includes('melhores momentos'))) {
-                            return; // Ignora esta notícia
+                            return;
                         }
 
-                        allItems.push(Object.assign({}, item, {
+                        validItems.push({
+                            title: item.title.trim(),
+                            description: item.description || '',
+                            pubDate: item.pubDate || '',
+                            link: item.link || '',
                             tag: feed.tag,
                             tagClass: feed.class,
                             source: feed.source
-                        }));
+                        });
                     }
                 });
-            } else {
-                console.warn(`Aviso: O feed ${feed.source} retornou um formato inesperado.`, data);
+
+                return validItems;
+            } catch (err) {
+                console.warn(`[Notícias] Falha ao processar feed ${feed.source}:`, err);
+                return [];
             }
-        }
+        });
+
+        const results = await Promise.all(feedPromises);
+        let allItems = results.flat();
 
         if (allItems.length === 0) {
+            // Se falhou e já temos itens renderizados (ex: do cache), apenas mantém
+            if (globalNewsItems.length > 0) return;
+
             newsList.innerHTML = '<div style="text-align: center; color: #ef4444;"><i class="ph ph-warning-circle" style="font-size: 1.5rem;"></i><br>Nenhuma notícia encontrada no momento.</div>';
             return;
         }
 
-        // Separa as notícias do 'emcimadahora' (tag === 'Folha') das demais
+        // Separa as notícias da Folha (tag === 'Folha') das demais
         const folhaItems = allItems.filter(item => item.tag === 'Folha');
         const otherItems = allItems.filter(item => item.tag !== 'Folha');
 
@@ -626,7 +707,7 @@ async function fetchAllNews() {
         shuffleArray(folhaItems);
         shuffleArray(otherItems);
 
-        // Intercala 1 Folha, 1 Aleatório, 1 Folha, 1 Aleatório...
+        // Intercala 1 Folha, 1 Outra, 1 Folha, 1 Outra...
         const interleavedItems = [];
         let fIndex = 0;
         let oIndex = 0;
@@ -636,42 +717,19 @@ async function fetchAllNews() {
         }
 
         allItems = interleavedItems;
-        newsList.innerHTML = '';
 
-        allItems.forEach((item, index) => {
-            let dateStr = '';
-            if (item.pubDate) {
-                try {
-                    const d = new Date(item.pubDate);
-                    if (!isNaN(d.getTime())) {
-                        const day = String(d.getDate()).padStart(2, '0');
-                        const month = String(d.getMonth() + 1).padStart(2, '0');
-                        const year = d.getFullYear();
-                        dateStr = ` • ${day}/${month}/${year}`;
-                    }
-                } catch (e) { }
-            }
+        // Salva cache no localStorage para carregamento instantâneo
+        try {
+            localStorage.setItem('cached_news_items_v3', JSON.stringify(allItems));
+        } catch (e) { }
 
-            const el = document.createElement('div');
-            el.className = 'news-item';
-            el.style.cursor = 'pointer';
-            el.onclick = () => openNewsModal(index);
-            el.innerHTML = `
-                <div class="news-header">
-                    <span class="news-tag ${item.tagClass}">${item.tag}</span>
-                    <span class="news-source">Fonte: ${item.source}${dateStr}</span>
-                </div>
-                <div class="news-title">${item.title}</div>
-            `;
-            newsList.appendChild(el);
-        });
-
-        globalNewsItems = allItems;
+        renderNewsItems(allItems);
 
     } catch (error) {
-        console.error("ERRO CRÍTICO NAS NOTÍCIAS (Falha no Proxy ou rss2json): ", error);
-        newsList.innerHTML = ''; // Limpar aviso
+        console.error("ERRO CRÍTICO NAS NOTÍCIAS: ", error);
+        if (globalNewsItems.length > 0) return; // Mantém notícias anteriores se houver
 
+        newsList.innerHTML = '';
         for (let i = 0; i < 6; i++) {
             const el = document.createElement('div');
             el.className = 'news-item';
@@ -684,6 +742,10 @@ async function fetchAllNews() {
                 <div class="news-title">Notícia Fictícia para Teste de Diagramação - Falha ao buscar dados oficiais. ${i + 1}</div>
             `;
             newsList.appendChild(el);
+        }
+    } finally {
+        if (refreshIcon) {
+            setTimeout(() => refreshIcon.style.transform = 'rotate(0deg)', 500);
         }
     }
 }
@@ -1157,7 +1219,7 @@ window.openNewsModal = function (index) {
     document.getElementById('modal-title').textContent = item.title || '';
     document.getElementById('modal-source').textContent = 'Fonte: ' + (item.source || '');
 
-    let desc = item.description || '';
+    let desc = item.description || item.summary || '';
     const tmp = document.createElement('div');
     tmp.innerHTML = desc;
     let cleanText = tmp.textContent || tmp.innerText || '';
@@ -1213,39 +1275,48 @@ window.fetchCustomTraffic = async function () {
         const data = await response.json();
         document.getElementById('ct-loading').style.display = 'none';
 
-        if (data.status === 'OK' && data.rows && data.rows[0]) {
-            const element = data.rows[0].elements[0];
+        let element = null;
+        if (Array.isArray(data) && data[0]) {
+            const item = data[0];
+            const isErr = item.condition === 'ROUTE_NOT_FOUND' || (item.status && item.status.code && item.status.code !== 0);
+            const durSecs = item.duration ? parseInt(String(item.duration).replace('s', ''), 10) : 0;
+            const staticSecs = item.staticDuration ? parseInt(String(item.staticDuration).replace('s', ''), 10) : durSecs;
+            element = {
+                status: isErr ? 'ZERO_RESULTS' : 'OK',
+                duration_in_traffic: { value: durSecs },
+                duration: { value: staticSecs }
+            };
+        } else if (data.status === 'OK' && data.rows && data.rows[0] && data.rows[0].elements && data.rows[0].elements[0]) {
+            element = data.rows[0].elements[0];
+        }
 
-            if (element && element.status === 'OK') {
-                const durationSecs = element.duration_in_traffic ? element.duration_in_traffic.value : element.duration.value;
-                const staticSecs = element.duration.value;
+        if (element && element.status === 'OK') {
+            const durationSecs = element.duration_in_traffic ? element.duration_in_traffic.value : element.duration.value;
+            const staticSecs = element.duration ? element.duration.value : durationSecs;
 
-                const diffSecs = durationSecs - staticSecs;
-                const diffMins = Math.round(diffSecs / 60);
+            const diffSecs = durationSecs - staticSecs;
+            const diffMins = Math.round(diffSecs / 60);
 
-                const timeEl = document.getElementById('ct-time');
-                const statusEl = document.getElementById('ct-status');
+            const timeEl = document.getElementById('ct-time');
+            const statusEl = document.getElementById('ct-status');
 
-                timeEl.textContent = Math.round(durationSecs / 60) + ' min';
+            timeEl.textContent = Math.round(durationSecs / 60) + ' min';
 
-                if (diffMins <= 2) {
-                    timeEl.style.color = 'var(--text-primary)';
-                    statusEl.textContent = 'Trânsito Normal (Bom!)';
-                    statusEl.style.color = '#4ade80'; // Verde
-                } else if (diffMins <= 8) {
-                    timeEl.style.color = '#facc15'; // Amarelo
-                    statusEl.textContent = 'Trânsito atual: +' + diffMins + ' min';
-                    statusEl.style.color = '#facc15';
-                } else {
-                    timeEl.style.color = '#ef4444'; // Vermelho
-                    statusEl.textContent = 'Trânsito atual: +' + diffMins + ' min';
-                    statusEl.style.color = '#ef4444';
-                }
-
-                document.getElementById('ct-results').style.display = 'block';
+            if (diffMins <= 2) {
+                timeEl.style.color = 'var(--text-primary)';
+                statusEl.textContent = 'Trânsito Normal (Bom!)';
+                statusEl.style.color = '#4ade80'; // Verde
+            } else if (diffMins <= 8) {
+                timeEl.style.color = '#facc15'; // Amarelo
+                statusEl.textContent = 'Trânsito atual: +' + diffMins + ' min';
+                statusEl.style.color = '#facc15';
             } else {
-                alert("Não foi possível calcular a rota para esse destino.");
+                timeEl.style.color = '#ef4444'; // Vermelho
+                statusEl.textContent = 'Trânsito atual: +' + diffMins + ' min';
+                statusEl.style.color = '#ef4444';
             }
+
+            document.getElementById('ct-results').style.display = 'block';
         } else {
             alert("Não foi possível encontrar uma rota para o destino informado.");
         }
@@ -1351,8 +1422,26 @@ window.initGoogleMapsTraffic = async function () {
                     setTimeout(() => refreshIcon.style.transform = 'rotate(0deg)', 500);
                 }
 
-                if (data.status !== 'OK' || !data.rows || !data.rows[0]) {
-                    console.error("Distance Matrix API retornou erro ou payload vazio:", data);
+                let elements = [];
+                if (Array.isArray(data)) {
+                    // Resposta direta da Routes API
+                    const sorted = [...data].sort((a, b) => (a.destinationIndex ?? 0) - (b.destinationIndex ?? 0));
+                    elements = sorted.map(item => {
+                        const isErr = item.condition === 'ROUTE_NOT_FOUND' || (item.status && item.status.code && item.status.code !== 0);
+                        const durSecs = item.duration ? parseInt(String(item.duration).replace('s', ''), 10) : 0;
+                        const staticSecs = item.staticDuration ? parseInt(String(item.staticDuration).replace('s', ''), 10) : durSecs;
+                        return {
+                            status: isErr ? 'ZERO_RESULTS' : 'OK',
+                            duration_in_traffic: { value: durSecs },
+                            duration: { value: staticSecs }
+                        };
+                    });
+                } else if (data && data.status === 'OK' && data.rows && data.rows[0] && data.rows[0].elements) {
+                    elements = data.rows[0].elements;
+                }
+
+                if (!elements || elements.length === 0) {
+                    console.error("Traffic API retornou erro ou payload vazio:", data);
                     activeDestinations.forEach(dest => {
                         const oldStatusEl = document.getElementById(`traffic-status-${dest.id}`);
                         if (oldStatusEl) { oldStatusEl.textContent = 'Erro API'; oldStatusEl.style.color = '#ef4444'; }
@@ -1365,8 +1454,6 @@ window.initGoogleMapsTraffic = async function () {
 
                 lastTrafficFetchTime = new Date().getTime();
                 if (typeof updateTrafficFreshness === 'function') updateTrafficFreshness(0);
-
-                const elements = data.rows[0].elements;
 
                 activeDestinations.forEach((dest, index) => {
                     const element = elements[index];
