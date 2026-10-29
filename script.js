@@ -689,7 +689,12 @@ async function fetchAllNews() {
         });
 
         const results = await Promise.all(feedPromises);
-        let allItems = results.flat();
+        let allItems = [];
+        for (let i = 0; i < results.length; i++) {
+            if (Array.isArray(results[i])) {
+                allItems = allItems.concat(results[i]);
+            }
+        }
 
         if (allItems.length === 0) {
             // Se falhou e já temos itens renderizados (ex: do cache), apenas mantém
@@ -1425,7 +1430,11 @@ window.initGoogleMapsTraffic = async function () {
                 let elements = [];
                 if (Array.isArray(data)) {
                     // Resposta direta da Routes API
-                    const sorted = [...data].sort((a, b) => (a.destinationIndex ?? 0) - (b.destinationIndex ?? 0));
+                    const sorted = data.slice().sort((a, b) => {
+                        const aIdx = (a && a.destinationIndex != null) ? a.destinationIndex : 0;
+                        const bIdx = (b && b.destinationIndex != null) ? b.destinationIndex : 0;
+                        return aIdx - bIdx;
+                    });
                     elements = sorted.map(item => {
                         const isErr = item.condition === 'ROUTE_NOT_FOUND' || (item.status && item.status.code && item.status.code !== 0);
                         const durSecs = item.duration ? parseInt(String(item.duration).replace('s', ''), 10) : 0;
